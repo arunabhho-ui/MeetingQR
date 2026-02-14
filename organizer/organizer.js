@@ -172,7 +172,11 @@ function generateQR() {
   // Ensure CONFIG.location reflects stored location before generating QR
   if (storedLoc) CONFIG.location = storedLoc;
 
-  const url = window.location.origin + "/MeetingQR/attendee/index.html";
+  const url =
+    window.location.origin +
+    window.location.pathname.split("/organizer")[0] +
+    "/attendee/index.html";
+
 
 
 
@@ -425,6 +429,7 @@ function sendCSVToEmail() {
   });
 
 }
+
 
 
 
