@@ -172,7 +172,7 @@ function generateQR() {
   // Ensure CONFIG.location reflects stored location before generating QR
   if (storedLoc) CONFIG.location = storedLoc;
 
-  const url = window.location.origin + "/attendee/index.html";
+  const url = window.location.origin + "/MeetingQR/attendee/index.html";
 
   const qrImage = document.getElementById("qrImage");
 
