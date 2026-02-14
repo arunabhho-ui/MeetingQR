@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Organizer Dashboard</title>
+  <link rel="stylesheet" href="organizer.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Flatpickr CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <!-- Flatpickr JS -->
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+</head>
+
+<body>
+  <div class="complete-page">
+    <div class="container">
+      <div class="header-decoration"></div>
+      <h1><i class="fas fa-calendar-alt"></i> Organizer Dashboard</h1>
+
+      <div class="event card">
+        <h2><i class="fas fa-info-circle"></i> Event Details</h2>
+        <div class="form-group">
+          <label for="eventName">Event Name</label>
+          <div class="input-icon">
+            <i class="fas fa-tag"></i>
+            <input type="text" id="eventName" placeholder="Enter event name" required>
+          </div>
+        </div>
+
+        
+        <div class="datetime-group">
+          <div class="input-icon">
+            <i class="fas fa-calendar"></i>
+            <input type="text" id="eventDate" required>
+            <div class="date-icon-container">
+              <i class="fas fa-calendar-alt"></i>
+            </div>
+          </div>
+          <div class="input-icon">
+            <i class="fas fa-clock"></i>
+            <input type="text" id="startTime" placeholder="Select time" required>
+            <div class="time-icon-container">
+              <i class="fas fa-clock"></i>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="duration">Duration (minutes)</label>
+          <div class="input-icon">
+            <i class="fas fa-hourglass-half"></i>
+            <input type="number" id="duration" placeholder="e.g., 90" min="1" required>
+          </div>
+        </div>
+
+        <button class="primary-btn" onclick="saveEvent()">
+          <i class="fas fa-save"></i> Save Event Details
+        </button>
+      </div>
+
+
+
+      <!-- Start New Event removed per request -->
+
+
+      
+      <div class="location card">
+        <h2><i class="fas fa-map-marker-alt"></i> Location Management</h2>
+        <button type="button" class="map-btn" onclick="openLocationPage()">
+          <i class="fas fa-map-pin"></i> Set Location
+        </button>
+
+
+        <h2 class="qr-title"><i class="fas fa-qrcode"></i> Event QR Code</h2>
+        <button id="generateQR" disabled onclick="generateQR()" class="secondary-btn">
+          <i class="fas fa-magic"></i> Generate QR Code
+        </button>
+        <p id="qrStatusHint" style="margin-top: 10px; font-size: 14px; font-weight: 500;">
+          ⚠️ Please set: event details and location
+        </p>
+
+        <div id="qrSection" class="qr-section">
+          <div class="qr-container">
+            <div class="qr-badge">Official Check-in QR</div>
+            <img id="qrImage" src="" alt="Event QR Code for check-in">
+            <p class="qr-caption">Scan this code for event check-in</p>
+            <div class="qr-hint">Valid for: <span id="eventTitle">Your Event</span></div>
+            <p id="qrTimer" style="margin-top: 10px; font-weight: 600; color: #d9534f;"></p>
+          </div>
+          <button id="downloadQRButton" class="primary-btn" onclick="downloadQR()">
+            <i class="fas fa-download"></i> Download QR Code (PNG)
+          </button>
+        </div>
+      </div>
+
+      <div class="export card">
+        <h2><i class="fas fa-file-export"></i> Export Data</h2>
+        <p>Download attendance records and event analytics</p>
+        <button class="primary-btn" onclick="downloadCSV()">
+        <i class="fas fa-download"></i> Download Attendance CSV
+        </button>
+
+
+        <h2>Email Attendance</h2>
+        <input type="email" id="directorEmail" placeholder="Director Email" />
+        <button class="export-btn" onclick="sendCSVToEmail()">
+        <div class="export-hint">
+          <i class="fas fa-envelope"></i> Email CSV
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="../config.js"></script>
+  <script src="organizer.js"></script>
+</body>
+
+</html>
