@@ -111,6 +111,15 @@ function checkEligibility(lat, lon) {
     );
   }
 
+  const start = getEventStartTimeIST();
+
+
+  const end = new Date(start.getTime() + CONFIG.event.durationMinutes * 60000);
+  const now = new Date();
+
+  if (now < start || now > end) {
+    return { ok: false, reason: "time_closed" };
+  }
 
   const dist =
     distanceMeters(
@@ -191,10 +200,7 @@ form.addEventListener("submit", async e => {
 
   payload.append("deviceId", deviceId);
 
-  payload.append("eventDate", CONFIG.event.date);
-  payload.append("startTime", CONFIG.event.startTime);
-  payload.append("durationMinutes", CONFIG.event.durationMinutes);
-
+  
 
 
   try {
