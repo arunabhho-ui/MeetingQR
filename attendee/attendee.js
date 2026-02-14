@@ -1,3 +1,6 @@
+localStorage.removeItem("eventConfig");
+localStorage.removeItem("locationConfig");
+
 const form = document.getElementById("attendanceForm");
 const statusText = document.getElementById("status");
 const eventTitle = document.getElementById("eventTitle");
@@ -30,21 +33,17 @@ function redirectToDenied(reason) {
 /* Load config */
 function loadEffectiveConfig() {
 
-  try {
+  const savedEvent = localStorage.getItem("eventConfig");
+  const savedLoc = localStorage.getItem("locationConfig");
 
-    const savedEvent = localStorage.getItem("eventConfig");
-    const savedLoc = localStorage.getItem("locationConfig");
+  if (savedEvent)
+    CONFIG.event = JSON.parse(savedEvent);
 
-    if (savedEvent) CONFIG.event = JSON.parse(savedEvent);
-    if (savedLoc) CONFIG.location = JSON.parse(savedLoc);
-
-  } catch (e) {
-
-    console.warn("Config load failed", e);
-
-  }
+  if (savedLoc)
+    CONFIG.location = JSON.parse(savedLoc);
 
 }
+
 
 loadEffectiveConfig();
 
@@ -96,17 +95,31 @@ function checkEligibility(lat, lon) {
   if (!CONFIG.event)
     return { ok: false, reason: "config_error" };
 
-  const start =
-    new Date(`${CONFIG.event.date}T${CONFIG.event.startTime}`);
+  function getEventStartTimeIST() {
 
-  const end =
-    new Date(start.getTime() +
-      CONFIG.event.durationMinutes * 60000);
+    const [year, month, day] = CONFIG.event.date.split("-");
+    const [hour, minute] = CONFIG.event.startTime.split(":");
 
+    return new Date(
+      year,
+      month - 1,
+      day,
+      hour,
+      minute,
+      0,
+      0
+    );
+  }
+
+  const start = getEventStartTimeIST();
+
+
+  const end = new Date(start.getTime() + CONFIG.event.durationMinutes * 60000);
   const now = new Date();
 
-  if (now < start || now > end)
+  if (now < start || now > end) {
     return { ok: false, reason: "time_closed" };
+  }
 
   const dist =
     distanceMeters(
