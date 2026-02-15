@@ -208,34 +208,36 @@ function generateQR() {
   document.getElementById("qrSection").style.display = "block";
   document.getElementById("eventTitle").innerText = CONFIG.event.name;
   startQRTimer();
-  async function createEventOnServer() {
-
-    const eventDate =
-      document.getElementById("eventDate").value;
-
-    const startTime =
-      document.getElementById("startTime").value;
-
-    const durationMinutes =
-      document.getElementById("duration").value;
-
-    const formData = new FormData();
-
-    formData.append("action", "createEvent");
-    formData.append("eventDate", eventDate);
-    formData.append("startTime", startTime);
-    formData.append("durationMinutes", durationMinutes);
-
-    await fetch(CONFIG.googleScriptURL, {
-
-      method: "POST",
-      body: formData
-
-    });
-
-  }
+  createEventOnServer();
 
 }
+
+async function createEventOnServer() {
+
+  const eventDate =
+    document.getElementById("eventDate").value;
+
+  const startTime =
+    document.getElementById("startTime").value;
+
+  const durationMinutes =
+    document.getElementById("duration").value;
+
+  const formData = new FormData();
+
+  formData.append("action", "createEvent");
+  formData.append("eventDate", eventDate);
+  formData.append("startTime", startTime);
+  formData.append("durationMinutes", durationMinutes);
+
+  await fetch(CONFIG.googleScriptURL, {
+
+    method: "POST",
+    body: formData
+
+  });
+
+  }
 
 /* Start countdown timer for QR validity */
 function startQRTimer() {
