@@ -167,7 +167,7 @@ function setPresetLocation(name) {
 }
 
 /* Generate QR code */
-function generateQR() {
+async function generateQR() {
   const eventName = document.getElementById("eventName").value.trim();
   const eventDate = document.getElementById("eventDate").value;
   const startTime = document.getElementById("startTime").value;
@@ -176,6 +176,8 @@ function generateQR() {
   const hasEvent = eventName && eventDate && startTime && duration;
   const storedLoc = readStoredLocation();
   const hasLocation = !!storedLoc;
+
+  await createEventOnServer();
 
   if (!hasEvent || !hasLocation) {
     const missing = [];
