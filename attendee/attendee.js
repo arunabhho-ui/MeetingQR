@@ -1,4 +1,4 @@
-console.log("CONFIG LOADED:", CONFIG)
+console.log("CONFIG LOADED:", CONFIG);
 
 const form = document.getElementById("attendanceForm");
 const statusText = document.getElementById("status");
@@ -140,10 +140,14 @@ async function initializeAttendance(){
       CONFIG.location.longitude
     );
 
-    if(distance > CONFIG.location.radius){
+    console.log("Distance from event:", distance);
+
+    // Allow 30 meter GPS tolerance
+    if(distance > CONFIG.location.radius + 30){
       redirectToDenied("outside_location");
       return;
     }
+
 
     const res = await fetch(
       CONFIG.googleScriptURL +
@@ -294,6 +298,4 @@ document.getElementById("department").addEventListener("change", e => {
     otherGroup.style.display = "none";
   }
 });
-
-
 
