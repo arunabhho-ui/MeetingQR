@@ -1,6 +1,3 @@
-localStorage.removeItem("eventConfig");
-localStorage.removeItem("locationConfig");
-
 const form = document.getElementById("attendanceForm");
 const statusText = document.getElementById("status");
 const eventTitle = document.getElementById("eventTitle");
