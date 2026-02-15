@@ -1,4 +1,4 @@
-console.log("CONFIG LOADED:", typeof CONFIG, CONFIG);
+console.log("CONFIG LOADED:", CONFIG);
 
 const form = document.getElementById("attendanceForm");
 const statusText = document.getElementById("status");
@@ -124,7 +124,7 @@ function distanceMeters(lat1, lon1, lat2, lon2) {
 
 /* Initial load */
 async function initializeAttendance(){
-
+  console.log("Using location:", CONFIG.location);
   try{
 
     const deviceId = getDeviceId();
