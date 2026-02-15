@@ -16,14 +16,6 @@ function loadEventState() {
 }
 
 /* Load saved location config from localStorage */
-function loadLocationState() {
-  // Always reset location on initial page load
-  CONFIG.location = {
-    latitude: 0,
-    longitude: 0,
-    radius: 0
-  };
-}
 
 /* Load location from storage (called when map.html saves location) */
 function updateLocationFromStorage() {
@@ -340,7 +332,7 @@ function emailCSV() {
 document.addEventListener("DOMContentLoaded", () => {
   // FIRST: Clear everything on page load
   loadEventState();
-  loadLocationState();
+  updateLocationFromStorage
   
   // Auto-fill current time if startTime is empty
   const startTimeInput = document.getElementById("startTime");
