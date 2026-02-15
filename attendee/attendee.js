@@ -94,24 +94,56 @@ function distanceMeters(lat1, lon1, lat2, lon2) {
 
 
 /* Initial load */
-navigator.geolocation.getCurrentPosition(
+async function initializeAttendance(){
 
-  function(position) {
+  try{
 
-    form.style.display = "block";
-    statusText.innerText = "";
+    const deviceId = getDeviceId();
 
-  },
+    const pos = await new Promise((resolve,reject)=>
+      navigator.geolocation.getCurrentPosition(resolve,reject,{timeout:10000})
+    );
 
-  function() {
+    const distance = distanceMeters(
+      pos.coords.latitude,
+      pos.coords.longitude,
+      CONFIG.location.latitude,
+      CONFIG.location.longitude
+    );
 
-    redirectToDenied("geolocation_permission");
+    if(distance > CONFIG.location.radius){
+      redirectToDenied("outside_location");
+      return;
+    }
 
-  },
+    const res = await fetch(CONFIG.googleScriptURL,{
+      method:"POST",
+      body:new URLSearchParams({
+        action:"checkEligibility",
+        deviceId:deviceId
+      })
+    });
 
-  { timeout: 10000 }
+    const result = await res.json();
 
-);
+    if(!result.eligible){
+      redirectToDenied(result.reason);
+      return;
+    }
+
+    form.style.display="block";
+    statusText.innerText="";
+
+  }
+  catch(err){
+
+    redirectToDenied("geolocation_error");
+
+  }
+
+}
+
+initializeAttendance();
 
 
 
@@ -198,11 +230,12 @@ form.addEventListener("submit", async e => {
       redirectToDenied("device_duplicate");
 
     }
-    else {
+    else{
 
-      redirectToDenied("server_error");
+      redirectToDenied(result.reason || "server_error");
 
     }
+
 
   }
   catch (err) {
