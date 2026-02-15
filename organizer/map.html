@@ -512,20 +512,15 @@
     });
 
     // Save location
-    async function saveLocation() {
+    function saveLocation() {
+
       if (!selectedLocation) {
-        alert('Please select a location first');
+        alert("Please select location first.");
         return;
       }
 
       const radius = Number(document.getElementById('radius').value);
 
-      if (!radius || radius < 10 || radius > 500) {
-        alert('Please enter a valid radius (10-500 meters)');
-        return;
-      }
-
-      // Save to localStorage
       const locationConfig = {
         latitude: selectedLocation.lat,
         longitude: selectedLocation.lng,
@@ -534,16 +529,11 @@
 
       localStorage.setItem("locationConfig", JSON.stringify(locationConfig));
 
-      // Also update the CONFIG object in parent window
-      if (window.opener && !window.opener.closed) {
-        window.opener.CONFIG.location = locationConfig;
-        window.opener.localStorage.setItem("locationConfig", JSON.stringify(locationConfig));
-        window.opener.updateQRButtonState();
-      }
+      alert("Location saved successfully.");
 
-      alert('✅ Location and radius saved successfully!');
       window.close();
     }
+
   </script>
 
 </body>
