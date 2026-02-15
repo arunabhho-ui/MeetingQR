@@ -1,4 +1,4 @@
-
+console.log("CONFIG LOADED:", CONFIG)
 
 const form = document.getElementById("attendanceForm");
 const statusText = document.getElementById("status");
@@ -294,5 +294,6 @@ document.getElementById("department").addEventListener("change", e => {
     otherGroup.style.display = "none";
   }
 });
+
 
 
