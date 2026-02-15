@@ -2,6 +2,34 @@ const form = document.getElementById("attendanceForm");
 const statusText = document.getElementById("status");
 const eventTitle = document.getElementById("eventTitle");
 
+function loadConfigFromURL(){
+
+  const params = new URLSearchParams(window.location.search);
+
+  const lat = params.get("lat");
+  const lng = params.get("lng");
+  const radius = params.get("radius");
+  const event = params.get("event");
+
+  if(lat && lng && radius){
+
+    CONFIG.location = {
+      latitude: parseFloat(lat),
+      longitude: parseFloat(lng),
+      radius: parseFloat(radius)
+    };
+
+  }
+
+  if(event){
+
+    CONFIG.event.name = event;
+
+  }
+
+}
+
+loadConfigFromURL();
 
 /* Redirect to denied page */
 function redirectToDenied(reason) {
