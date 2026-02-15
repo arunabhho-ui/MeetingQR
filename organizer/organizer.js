@@ -142,6 +142,38 @@ function openLocationPage() {
   window.open("map.html", "_blank", "width=1200,height=800");
 }
 
+/* Preset locations: AB5 and AB4 */
+function setPresetLocation(name) {
+  const presets = {
+    AB5: {
+      latitude: 13.12521377401022,
+      longitude: 77.58983194828035,
+      radius: 50
+    },
+    AB4: {
+      latitude: 13.125328708114353,
+      longitude: 77.59047567844392,
+      radius: 50
+    }
+  };
+
+  const p = presets[name];
+  if (!p) return;
+
+  // Save to localStorage (map.html reads this key)
+  try {
+    localStorage.setItem('locationConfig', JSON.stringify(p));
+    CONFIG.location = p;
+    const el = document.getElementById('presetSelected');
+    if (el) el.innerText = `Selected: ${name} (${p.latitude.toFixed(6)}, ${p.longitude.toFixed(6)})`;
+    updateQRButtonState();
+    alert(`Location set to ${name}`);
+  } catch (err) {
+    console.error('Failed to set preset location', err);
+    alert('Failed to set preset location');
+  }
+}
+
 /* Generate QR code */
 function generateQR() {
   const eventName = document.getElementById("eventName").value.trim();
