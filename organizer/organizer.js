@@ -168,26 +168,31 @@ function setPresetLocation(name) {
 
 /* Generate QR code */
 async function generateQR() {
+
   const eventName = document.getElementById("eventName").value.trim();
   const eventDate = document.getElementById("eventDate").value;
   const startTime = document.getElementById("startTime").value;
   const duration = document.getElementById("duration").value;
-  
-  const hasEvent = eventName && eventDate && startTime && duration;
-  const storedLoc = readStoredLocation();
-  const hasLocation = !!storedLoc;
 
-  await createEventOnServer();
+  const storedLoc = localStorage.getItem("locationConfig");
 
-  if (!hasEvent || !hasLocation) {
-    const missing = [];
-    if (!hasEvent) missing.push("event details");
-    if (!hasLocation) missing.push("location");
-    alert(`⚠️ Please set: ${missing.join(" and ")}`);
+  if (!storedLoc) {
+    alert("Please set location first.");
     return;
   }
 
-  // Update CONFIG with current form values
+  const loc = JSON.parse(storedLoc);
+
+  if (!loc.latitude || !loc.longitude || !loc.radius) {
+    alert("Invalid location config.");
+    return;
+  }
+
+  if (!eventName || !eventDate || !startTime || !duration) {
+    alert("Please fill event details.");
+    return;
+  }
+
   CONFIG.event = {
     name: eventName,
     date: eventDate,
@@ -195,30 +200,27 @@ async function generateQR() {
     durationMinutes: parseInt(duration)
   };
 
-  // Ensure CONFIG.location reflects stored location before generating QR
-  if (storedLoc) CONFIG.location = storedLoc;
+  CONFIG.location = loc;
 
-  const base = window.location.origin + window.location.pathname.split("/organizer")[0];
+  await createEventOnServer();
 
-  const loc = readStoredLocation();
+  const base =
+    window.location.origin +
+    "/MeetingQR/attendee/index.html";
 
   const url =
-  `${base}/attendee/index.html?` +
-  `event=${encodeURIComponent(CONFIG.event.name)}` +
-  `&lat=${loc.latitude}` +
-  `&lng=${loc.longitude}` +
-  `&radius=${loc.radius}`;
+    `${base}?event=${encodeURIComponent(eventName)}` +
+    `&lat=${loc.latitude}` +
+    `&lng=${loc.longitude}` +
+    `&radius=${loc.radius}`;
 
-  const qrImage = document.getElementById("qrImage");
+  console.log("QR URL:", url);
 
-  qrImage.src =
+  document.getElementById("qrImage").src =
     "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=" +
     encodeURIComponent(url);
 
   document.getElementById("qrSection").style.display = "block";
-  document.getElementById("eventTitle").innerText = CONFIG.event.name;
-  startQRTimer();
-  createEventOnServer();
 
 }
 
