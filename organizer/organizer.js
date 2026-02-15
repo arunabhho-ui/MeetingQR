@@ -341,8 +341,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // FIRST: Clear everything on page load
   loadEventState();
   loadLocationState();
-  localStorage.removeItem("eventConfig");
-  localStorage.removeItem("locationConfig");
   
   // Auto-fill current time if startTime is empty
   const startTimeInput = document.getElementById("startTime");
