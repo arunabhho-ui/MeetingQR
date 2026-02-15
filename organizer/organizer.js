@@ -373,13 +373,11 @@ window.addEventListener("focus", () => {
 function downloadCSV() {
 
   const url =
-    CONFIG.googleScriptURL + "?action=downloadCSV";
+    "https://docs.google.com/spreadsheets/d/1f0WpNpTtZkqeO7XQ780l7mRye_X95IKyd-DmkxGCXQc/export?format=csv";
 
   window.open(url, "_blank");
 
 }
-
-
 
 function sendCSVToEmail() {
 
