@@ -172,12 +172,7 @@ function generateQR() {
   // Ensure CONFIG.location reflects stored location before generating QR
   if (storedLoc) CONFIG.location = storedLoc;
 
-  const url =
-    window.location.origin +
-    window.location.pathname.split("/organizer")[0] +
-    "/attendee/index.html";
-
-
+  const url = window.location.origin + window.location.pathname.split("/organizer")[0] + "/attendee/index.html";
 
 
   const qrImage = document.getElementById("qrImage");
@@ -378,11 +373,12 @@ window.addEventListener("focus", () => {
 function downloadCSV() {
 
   const url =
-    "https://docs.google.com/spreadsheets/d/1f0WpNpTtZkqeO7XQ780l7mRye_X95IKyd-DmkxGCXQc/export?format=csv";
+    CONFIG.googleScriptURL + "?downloadCSV";
 
   window.open(url, "_blank");
 
 }
+
 
 function sendCSVToEmail() {
 
@@ -429,8 +425,3 @@ function sendCSVToEmail() {
   });
 
 }
-
-
-
-
-
