@@ -2,6 +2,22 @@ const form = document.getElementById("attendanceForm");
 const statusText = document.getElementById("status");
 const eventTitle = document.getElementById("eventTitle");
 
+function loadEffectiveConfig() {
+
+  const savedEvent = localStorage.getItem("eventConfig");
+  const savedLoc = localStorage.getItem("locationConfig");
+
+  if (savedEvent && !CONFIG.event.name)
+    CONFIG.event = JSON.parse(savedEvent);
+
+  if (savedLoc && !CONFIG.location.latitude)
+    CONFIG.location = JSON.parse(savedLoc);
+
+}
+
+
+loadEffectiveConfig();
+
 function loadConfigFromURL(){
 
   const params = new URLSearchParams(window.location.search);
@@ -31,6 +47,8 @@ function loadConfigFromURL(){
 
 loadConfigFromURL();
 
+console.log("FINAL CONFIG:", CONFIG);
+
 /* Redirect to denied page */
 function redirectToDenied(reason) {
 
@@ -55,22 +73,6 @@ function redirectToDenied(reason) {
 }
 
 
-/* Load config */
-function loadEffectiveConfig() {
-
-  const savedEvent = localStorage.getItem("eventConfig");
-  const savedLoc = localStorage.getItem("locationConfig");
-
-  if (savedEvent)
-    CONFIG.event = JSON.parse(savedEvent);
-
-  if (savedLoc)
-    CONFIG.location = JSON.parse(savedLoc);
-
-}
-
-
-loadEffectiveConfig();
 
 eventTitle.innerText =
   CONFIG?.event?.name || "Event Attendance";
