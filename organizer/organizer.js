@@ -198,8 +198,16 @@ async function generateQR() {
   // Ensure CONFIG.location reflects stored location before generating QR
   if (storedLoc) CONFIG.location = storedLoc;
 
-  const url = window.location.origin + window.location.pathname.split("/organizer")[0] + "/attendee/index.html";
+  const base = window.location.origin + window.location.pathname.split("/organizer")[0];
 
+  const loc = readStoredLocation();
+
+  const url =
+  `${base}/attendee/index.html?` +
+  `event=${encodeURIComponent(CONFIG.event.name)}` +
+  `&lat=${loc.latitude}` +
+  `&lng=${loc.longitude}` +
+  `&radius=${loc.radius}`;
 
   const qrImage = document.getElementById("qrImage");
 
@@ -214,32 +222,28 @@ async function generateQR() {
 
 }
 
-async function createEventOnServer() {
-
-  const eventDate =
-    document.getElementById("eventDate").value;
-
-  const startTime =
-    document.getElementById("startTime").value;
-
-  const durationMinutes =
-    document.getElementById("duration").value;
+async function createEventOnServer(){
 
   const formData = new FormData();
 
-  formData.append("action", "createEvent");
-  formData.append("eventDate", eventDate);
-  formData.append("startTime", startTime);
-  formData.append("durationMinutes", durationMinutes);
+  formData.append("action","createEvent");
+  formData.append("eventDate", CONFIG.event.date);
+  formData.append("startTime", CONFIG.event.startTime);
+  formData.append("durationMinutes", CONFIG.event.durationMinutes);
 
-  await fetch(CONFIG.googleScriptURL, {
-
-    method: "POST",
-    body: formData
-
+  const res = await fetch(CONFIG.googleScriptURL,{
+    method:"POST",
+    body:formData
   });
 
+  const data = await res.json();
+
+  if(!data.success){
+    alert("Failed to create event");
   }
+
+}
+
 
 /* Start countdown timer for QR validity */
 function startQRTimer() {
