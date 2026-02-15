@@ -90,69 +90,13 @@ function distanceMeters(lat1, lon1, lat2, lon2) {
 
 
 /* Check eligibility */
-function checkEligibility(lat, lon) {
 
-  if (!CONFIG.event)
-    return { ok: false, reason: "config_error" };
-
-  function getEventStartTimeIST() {
-
-    const [year, month, day] = CONFIG.event.date.split("-");
-    const [hour, minute] = CONFIG.event.startTime.split(":");
-
-    return new Date(
-      year,
-      month - 1,
-      day,
-      hour,
-      minute,
-      0,
-      0
-    );
-  }
-
-  const start = getEventStartTimeIST();
-
-
-  const end = new Date(start.getTime() + CONFIG.event.durationMinutes * 60000);
-  const now = new Date();
-
-  if (now < start || now > end) {
-    return { ok: false, reason: "time_closed" };
-  }
-
-  const dist =
-    distanceMeters(
-      lat,
-      lon,
-      CONFIG.location.latitude,
-      CONFIG.location.longitude
-    );
-
-  if (dist > CONFIG.location.radius)
-    return { ok: false, reason: "outside_location" };
-
-  return { ok: true };
-
-}
 
 
 /* Initial load */
 navigator.geolocation.getCurrentPosition(
 
   function(position) {
-
-    const lat = position.coords.latitude;
-    const lon = position.coords.longitude;
-
-    const eligibility = checkEligibility(lat, lon);
-
-    if (!eligibility.ok) {
-
-      redirectToDenied(eligibility.reason);
-      return;
-
-    }
 
     form.style.display = "block";
     statusText.innerText = "";
@@ -168,6 +112,7 @@ navigator.geolocation.getCurrentPosition(
   { timeout: 10000 }
 
 );
+
 
 
 /* Submit attendance */
