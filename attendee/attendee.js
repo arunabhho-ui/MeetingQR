@@ -120,6 +120,23 @@ form.addEventListener("submit", async e => {
 
   e.preventDefault();
 
+  // Validate required fields
+  const name = document.getElementById("name").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const facultyId = document.getElementById("facultyId").value.trim();
+  const department = document.getElementById("department").value;
+  const otherDepartment = document.getElementById("otherDepartment").value.trim();
+
+  if (!name || !email || !facultyId || !department) {
+    statusText.innerText = "Please fill all required fields";
+    return;
+  }
+
+  if (department === "other" && !otherDepartment) {
+    statusText.innerText = "Please specify your department";
+    return;
+  }
+
   statusText.innerText = "Submitting attendance...";
 
   const deviceId = getDeviceId();
@@ -131,18 +148,15 @@ form.addEventListener("submit", async e => {
 
   payload.append("eventName", CONFIG.event.name);
 
-  payload.append("name",
-    document.getElementById("name").value.trim());
+  payload.append("name", name);
 
-  payload.append("email",
-    document.getElementById("email").value.trim());
+  payload.append("email", email);
 
-  payload.append("facultyId",
-    document.getElementById("facultyId").value.trim());
+  payload.append("facultyId", facultyId);
 
 
   payload.append("department",
-    document.getElementById("department").value);
+    department === "other" ? otherDepartment : department);
 
   payload.append("deviceId", deviceId);
 
@@ -200,3 +214,14 @@ form.addEventListener("submit", async e => {
   }
 
 });
+
+/* Handle "other" department selection */
+document.getElementById("department").addEventListener("change", e => {
+  const otherGroup = document.getElementById("otherDepartmentGroup");
+  if (e.target.value === "other") {
+    otherGroup.style.display = "block";
+  } else {
+    otherGroup.style.display = "none";
+  }
+});
+
