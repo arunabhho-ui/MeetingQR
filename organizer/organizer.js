@@ -373,11 +373,12 @@ window.addEventListener("focus", () => {
 function downloadCSV() {
 
   const url =
-    CONFIG.googleScriptURL + "?downloadCSV";
+    CONFIG.googleScriptURL + "?action=downloadCSV";
 
   window.open(url, "_blank");
 
 }
+
 
 
 function sendCSVToEmail() {
