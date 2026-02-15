@@ -373,9 +373,19 @@ window.addEventListener("focus", () => {
 function downloadCSV() {
 
   const url =
-    "https://docs.google.com/spreadsheets/d/1f0WpNpTtZkqeO7XQ780l7mRye_X95IKyd-DmkxGCXQc/export?format=csv";
+    CONFIG.googleScriptURL + "?action=downloadCSV";
 
-  window.open(url, "_blank");
+  const link = document.createElement("a");
+
+  link.href = url;
+
+  link.download = "attendance.csv";
+
+  document.body.appendChild(link);
+
+  link.click();
+
+  document.body.removeChild(link);
 
 }
 
