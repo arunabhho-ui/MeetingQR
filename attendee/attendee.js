@@ -141,12 +141,18 @@ async function initializeAttendance(){
       return;
     }
 
-    const res = await fetch(CONFIG.googleScriptURL + "?action=checkEligibility&deviceId=" + deviceId,{
-      method:"GET"
-    });
+    const res = await fetch(
+      CONFIG.googleScriptURL +
+      "?action=checkEligibility&deviceId=" +
+      deviceId
+    );
 
+    const text = await res.text();
 
-    const result = await res.json();
+    console.log("Raw server response:", text);
+
+    const result = JSON.parse(text);
+
 
     if(!result.eligible){
       redirectToDenied(result.reason);
