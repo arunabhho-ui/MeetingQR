@@ -372,19 +372,25 @@ window.addEventListener("focus", () => {
 
 function downloadCSV() {
 
-  const url =
-    CONFIG.googleScriptURL + "?action=downloadCSV";
-
-  // Create a temporary iframe for the download
-  const iframe = document.createElement("iframe");
-  iframe.style.display = "none";
-  iframe.src = url;
-  document.body.appendChild(iframe);
-
-  // Clean up after download
-  setTimeout(() => {
-    document.body.removeChild(iframe);
-  }, 1000);
+  const url = CONFIG.googleScriptURL + "?action=downloadCSV";
+  
+  fetch(url)
+    .then(response => response.text())
+    .then(csv => {
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', 'attendance.csv');
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    })
+    .catch(err => {
+      console.error('Failed to download CSV', err);
+      alert('Failed to download CSV');
+    });
 
 }
 
