@@ -158,13 +158,13 @@ async function initializeAttendance(){
 
     form.style.display="block";
     statusText.innerText="";
+    console.log("CONFIG:", CONFIG);
+    console.log("Google Script URL:", CONFIG.googleScriptURL);
 
   }
   catch(err){
     console.log("Eligibility result:", result);
     redirectToDenied("geolocation_error");
-    console.log("CONFIG:", CONFIG);
-    console.log("Google Script URL:", CONFIG.googleScriptURL);
 
 
   }
