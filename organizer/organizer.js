@@ -375,17 +375,16 @@ function downloadCSV() {
   const url =
     CONFIG.googleScriptURL + "?action=downloadCSV";
 
-  const link = document.createElement("a");
+  // Create a temporary iframe for the download
+  const iframe = document.createElement("iframe");
+  iframe.style.display = "none";
+  iframe.src = url;
+  document.body.appendChild(iframe);
 
-  link.href = url;
-
-  link.download = "attendance.csv";
-
-  document.body.appendChild(link);
-
-  link.click();
-
-  document.body.removeChild(link);
+  // Clean up after download
+  setTimeout(() => {
+    document.body.removeChild(iframe);
+  }, 1000);
 
 }
 
