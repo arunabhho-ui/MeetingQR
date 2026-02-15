@@ -1,3 +1,5 @@
+console.log("CONFIG LOADED:", typeof CONFIG, CONFIG);
+
 const form = document.getElementById("attendanceForm");
 const statusText = document.getElementById("status");
 const eventTitle = document.getElementById("eventTitle");
