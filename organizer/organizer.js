@@ -372,27 +372,28 @@ window.addEventListener("focus", () => {
 
 function downloadCSV() {
 
-  const url = CONFIG.googleScriptURL + "?action=downloadCSV";
-  
-  fetch(url)
-    .then(response => response.text())
-    .then(csv => {
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      const url = URL.createObjectURL(blob);
-      link.setAttribute('href', url);
-      link.setAttribute('download', 'attendance.csv');
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    })
-    .catch(err => {
-      console.error('Failed to download CSV', err);
-      alert('Failed to download CSV');
-    });
+  const sheetId =
+    "1f0WpNpTtZkqeO7XQ780l7mRye_X95IKyd-DmkxGCXQc";
+
+  const gid = "0"; // your sheet gid
+
+  const url =
+    `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`;
+
+  const link = document.createElement("a");
+
+  link.href = url;
+
+  link.download = "attendance.csv";
+
+  document.body.appendChild(link);
+
+  link.click();
+
+  document.body.removeChild(link);
 
 }
+
 
 function sendCSVToEmail() {
 
