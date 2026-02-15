@@ -174,22 +174,35 @@ async function generateQR() {
   const startTime = document.getElementById("startTime").value;
   const duration = document.getElementById("duration").value;
 
-  const storedLoc = localStorage.getItem("locationConfig");
+  // STRICT location check
+  const storedLocString = localStorage.getItem("locationConfig");
 
-  if (!storedLoc) {
-    alert("Please set location first.");
+  if (!storedLocString) {
+    alert("❌ Please set location first using 'Set Location' button.");
     return;
   }
 
-  const loc = JSON.parse(storedLoc);
+  let loc;
 
-  if (!loc.latitude || !loc.longitude || !loc.radius) {
-    alert("Invalid location config.");
+  try {
+    loc = JSON.parse(storedLocString);
+  } catch {
+    alert("❌ Invalid location config.");
+    return;
+  }
+
+  if (
+    !loc ||
+    typeof loc.latitude !== "number" ||
+    typeof loc.longitude !== "number" ||
+    typeof loc.radius !== "number"
+  ) {
+    alert("❌ Please set valid location before generating QR.");
     return;
   }
 
   if (!eventName || !eventDate || !startTime || !duration) {
-    alert("Please fill event details.");
+    alert("❌ Please fill event details.");
     return;
   }
 
@@ -202,14 +215,13 @@ async function generateQR() {
 
   CONFIG.location = loc;
 
+  console.log("Using location:", loc);
+
   await createEventOnServer();
 
-  const base =
-    window.location.origin +
-    "/MeetingQR/attendee/index.html";
-
   const url =
-    `${base}?event=${encodeURIComponent(eventName)}` +
+    `${window.location.origin}/MeetingQR/attendee/index.html` +
+    `?event=${encodeURIComponent(eventName)}` +
     `&lat=${loc.latitude}` +
     `&lng=${loc.longitude}` +
     `&radius=${loc.radius}`;
@@ -221,8 +233,8 @@ async function generateQR() {
     encodeURIComponent(url);
 
   document.getElementById("qrSection").style.display = "block";
-
 }
+
 
 async function createEventOnServer(){
 
