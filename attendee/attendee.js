@@ -141,13 +141,10 @@ async function initializeAttendance(){
       return;
     }
 
-    const res = await fetch(CONFIG.googleScriptURL,{
-      method:"POST",
-      body:new URLSearchParams({
-        action:"checkEligibility",
-        deviceId:deviceId
-      })
+    const res = await fetch(CONFIG.googleScriptURL + "?action=checkEligibility&deviceId=" + deviceId,{
+      method:"GET"
     });
+
 
     const result = await res.json();
 
@@ -163,11 +160,10 @@ async function initializeAttendance(){
 
   }
   catch(err){
-    console.log("Eligibility result:", result);
-    redirectToDenied("geolocation_error");
-
-
+    console.error("ERROR:", err);
+    redirectToDenied("server_error");
   }
+
 
 }
 
@@ -235,13 +231,16 @@ form.addEventListener("submit", async e => {
     console.log("Sending payload:",
       Object.fromEntries(payload));
 
-    const res = await fetch(CONFIG.googleScriptURL, {
+    const params = new URLSearchParams(payload);
 
-      method: "POST",
-
-      body: payload
-
+    const res = await fetch(CONFIG.googleScriptURL,{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/x-www-form-urlencoded"
+      },
+      body: params.toString()
     });
+
 
     const result = await res.json();
 
