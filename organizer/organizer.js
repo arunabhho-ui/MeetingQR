@@ -32,18 +32,31 @@ function updateLocationFromStorage() {
 
 /* Read location directly from localStorage (authoritative) */
 function readStoredLocation() {
+
   const saved = localStorage.getItem("locationConfig");
+
   if (!saved) return null;
+
   try {
+
     const cfg = JSON.parse(saved);
-    if (cfg && cfg.latitude && cfg.longitude && cfg.latitude > 0 && cfg.longitude > 0) {
+
+    if (
+      cfg &&
+      typeof cfg.latitude === "number" &&
+      typeof cfg.longitude === "number" &&
+      typeof cfg.radius === "number"
+    ) {
       return cfg;
     }
+
   } catch (e) {
-    console.error('readStoredLocation parse error', e);
+    console.error("Location parse error:", e);
   }
+
   return null;
 }
+
 
 /* Save event details and update CONFIG */
 function saveEvent() {
@@ -174,30 +187,10 @@ async function generateQR() {
   const startTime = document.getElementById("startTime").value;
   const duration = document.getElementById("duration").value;
 
-  // STRICT location check
-  const storedLocString = localStorage.getItem("locationConfig");
+  const loc = readStoredLocation();
 
-  if (!storedLocString) {
-    alert("❌ Please set location first using 'Set Location' button.");
-    return;
-  }
-
-  let loc;
-
-  try {
-    loc = JSON.parse(storedLocString);
-  } catch {
-    alert("❌ Invalid location config.");
-    return;
-  }
-
-  if (
-    !loc ||
-    typeof loc.latitude !== "number" ||
-    typeof loc.longitude !== "number" ||
-    typeof loc.radius !== "number"
-  ) {
-    alert("❌ Please set valid location before generating QR.");
+  if (!loc) {
+    alert("❌ Please set location first using Set Location.");
     return;
   }
 
@@ -234,6 +227,7 @@ async function generateQR() {
 
   document.getElementById("qrSection").style.display = "block";
 }
+
 
 
 async function createEventOnServer(){
@@ -354,7 +348,7 @@ function emailCSV() {
 document.addEventListener("DOMContentLoaded", () => {
   // FIRST: Clear everything on page load
   loadEventState();
-  updateLocationFromStorage
+  updateLocationFromStorage();
   
   // Auto-fill current time if startTime is empty
   const startTimeInput = document.getElementById("startTime");
