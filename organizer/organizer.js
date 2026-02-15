@@ -387,10 +387,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
 /* Also check for location updates when page regains focus */
 window.addEventListener("focus", () => {
-  // IMPORTANT: Always check current location state
-  // Don't restore from localStorage on focus
+
+  // reload location from localStorage
+  updateLocationFromStorage();
+
+  // update UI
   updateQRButtonState();
+
 });
+
 
 function downloadCSV() {
 
