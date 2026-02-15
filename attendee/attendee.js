@@ -137,8 +137,9 @@ form.addEventListener("submit", async e => {
   payload.append("email",
     document.getElementById("email").value.trim());
 
-  payload.append("phone",
-    document.getElementById("phone").value.trim());
+  payload.append("facultyId",
+    document.getElementById("facultyId").value.trim());
+
 
   payload.append("department",
     document.getElementById("department").value);
