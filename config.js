@@ -13,6 +13,7 @@ const CONFIG = {
     radius: 100
   },
 
-  mailerScriptURL: "https://script.google.com/macros/s/AKfycbxQpIN6wwHJ2x8I4-G2YEdqlBIw5pvegTotKeA-UQRwoZ66z0yFT56lg6qj_Ha36KVktw/exec"
+  mailerScriptURL: "https://script.google.com/macros/s/AKfycbynq-14msnucjbNvu1-4BhM5akqX4N8DyTlSCNtE04a2E36YzgkPx3n6-BG2cdeVEaUgw/exec"
+
 
 };
