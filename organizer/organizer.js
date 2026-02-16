@@ -436,7 +436,6 @@ window.addEventListener("focus", () => {
 async function downloadCSV() {
   setButtonLoading('downloadCSVButton', true);
   try {
-
     console.log("Starting CSV download...");
 
     const { getAllAttendance } = await import("../firebase.js");
@@ -474,42 +473,44 @@ async function downloadCSV() {
 
     console.log("CSV created, size:", csv.length, "bytes");
 
-    // Create blob and download
+    // Create blob
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     
     console.log("Blob created, size:", blob.size, "bytes");
     
+    // Generate filename based on meeting name
+    let filename = "Attendance Report.csv";
+    if (CONFIG.event && CONFIG.event.name) {
+      filename = `${CONFIG.event.name} Attendance Report.csv`;
+    }
+    
+    // Create object URL and trigger download
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `attendance_${new Date().toISOString().split('T')[0]}.csv`);
+    link.href = url;
+    link.download = filename;
     link.style.display = "none";
     document.body.appendChild(link);
     
-    console.log("Download link created:", link.download);
+    console.log("Download link created:", filename);
     console.log("Triggering download click...");
     
     // Trigger download
-    link.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+    link.click();
+    
+    // Cleanup immediately after click
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 100);
+    
+    console.log("CSV download complete");
+    setButtonLoading('downloadCSVButton', false);
 
-    // Cleanup after download
-    setTimeout(() => {
-      if (document.body.contains(link)) {
-        document.body.removeChild(link);
-      }
-      URL.revokeObjectURL(url);
-      console.log("Download cleanup complete");
-      setButtonLoading('downloadCSVButton', false);
-    }, 1000);
-
-  }
-  catch (err) {
+  } catch (err) {
     console.error("Download error:", err);
     console.error("Error stack:", err.stack);
     alert("Failed to download CSV: " + err.message);
     setButtonLoading('downloadCSVButton', false);
   }
-
 }
 
 
