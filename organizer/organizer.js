@@ -371,6 +371,7 @@ document.addEventListener("DOMContentLoaded", () => {
       updateQRButtonState();
     }
   });
+  scheduleDirectorEmail();
 });
 
 /* Also check for location updates when page regains focus */
@@ -438,6 +439,14 @@ async function sendCSVToEmail(){
 
   try{
 
+    const email =
+      document.getElementById("directorEmail").value.trim();
+
+    if(!email){
+      alert("Enter email first");
+      return;
+    }
+
     const res =
       await fetch(CONFIG.mailerScriptURL,{
 
@@ -445,7 +454,8 @@ async function sendCSVToEmail(){
 
         body:new URLSearchParams({
 
-          action:"sendAttendanceEmail"
+          action:"sendAttendanceEmail",
+          email:email
 
         })
 
@@ -456,7 +466,7 @@ async function sendCSVToEmail(){
 
     if(data.success){
 
-      alert("Attendance emailed successfully");
+      alert("Attendance emailed to " + email);
 
     }
     else{
@@ -468,13 +478,68 @@ async function sendCSVToEmail(){
   }
   catch(err){
 
-    alert("Error sending email");
+    console.error(err);
+    alert("Email failed");
+
+  }
+
+}
+
+function scheduleDirectorEmail(){
+
+  const event = CONFIG.event;
+
+  if(!event) return;
+
+  const endTime =
+    new Date(`${event.date}T${event.startTime}`);
+
+  endTime.setMinutes(
+    endTime.getMinutes() + event.durationMinutes
+  );
+
+  const delay =
+    endTime.getTime() - Date.now();
+
+  if(delay <= 0){
+    sendDirectorEmailNow();
+  }
+  else{
+
+    setTimeout(sendDirectorEmailNow, delay);
+
+  }
+
+}
+
+
+async function sendDirectorEmailNow(){
+
+  try{
+
+    await fetch(CONFIG.mailerScriptURL,{
+
+      method:"POST",
+
+      body:new URLSearchParams({
+
+        action:"sendDirectorEmail"
+
+      })
+
+    });
+
+    console.log("Director email sent");
+
+  }
+  catch(err){
 
     console.error(err);
 
   }
 
 }
+
 /* Expose functions to global scope for HTML onclick handlers */
 window.saveEvent = saveEvent;
 window.openLocationPage = openLocationPage;
