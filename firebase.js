@@ -100,7 +100,13 @@ export async function getAllAttendance(){
 
   snapshot.forEach(doc=>{
 
-    records.push(doc.data());
+    const d = doc.data();
+
+    records.push({
+      ...d,
+      timestamp:
+        d.timestamp?.toDate()?.toISOString() || ""
+    });
 
   });
 
