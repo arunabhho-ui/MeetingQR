@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Select Location</title>
+
+  <!-- Local Leaflet CSS -->
+  <link rel="stylesheet" href="../shared/leaflet.css" />
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f5f5f5;
+    }
+
+    .map-container {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .map-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-bottom: 3px solid #5568d3;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .map-header h2 {
+      margin: 0 0 15px 0;
+      font-size: 1.8rem;
+      font-weight: 300;
+      letter-spacing: 0.5px;
+    }
+
+    .location-mode-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+    }
+
+    .mode-btn {
+      padding: 10px 20px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .mode-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.5);
+      transform: translateY(-2px);
+    }
+
+    .mode-btn.active {
+      background: white;
+      color: #667eea;
+      border-color: white;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .mode-section {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .mode-section.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .instructions {
+      background: rgba(255, 255, 255, 0.95);
+      color: #333;
+      padding: 12px 15px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      margin-bottom: 12px;
+      border-left: 4px solid #ffc107;
+    }
+
+    .map-controls {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+    }
+
+    .radius-control {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .radius-control label {
+      color: #333;
+      font-weight: 500;
+      font-size: 0.9rem;
+      min-width: 120px;
+    }
+
+    .radius-control input {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      min-width: 80px;
+    }
+
+    .radius-control input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 4px rgba(102, 126, 234, 0.3);
+    }
+
+    .radius-label {
+      background: #667eea;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-weight: 500;
+      font-size: 0.85rem;
+      min-width: 60px;
+      text-align: center;
+    }
+
+    .radius-info {
+      color: #666;
+      font-size: 0.85rem;
+      margin-top: 5px;
+    }
+
+    .current-location-btn {
+      display: block;
+      width: 100%;
+      padding: 12px 20px;
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .current-location-btn:hover {
+      background: #218838;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    }
+
+    .current-location-btn:active {
+      transform: translateY(0);
+    }
+
+    .preview-section {
+      background: #e8f5e9;
+      border: 2px solid #4caf50;
+      border-radius: 6px;
+      padding: 12px 15px;
+      margin-bottom: 12px;
+    }
+
+    .preview-info {
+      color: #2e7d32;
+      font-size: 0.9rem;
+    }
+
+    .preview-info p {
+      margin: 5px 0;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .save-btn {
+      flex: 1;
+      padding: 12px 20px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .save-btn:hover {
+      background: #0056b3;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 87, 179, 0.3);
+    }
+
+    .save-btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    #map {
+      height: 90vh;
+      width: 100%;
+      flex: 1;
+    }
+
+    @media (max-width: 768px) {
+      .map-header {
+        padding: 15px;
+      }
+
+      .location-mode-tabs {
+        flex-direction: column;
+      }
+
+      .mode-btn {
+        width: 100%;
+      }
+
+      .radius-control {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .radius-control label {
+        min-width: auto;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="map-container">
+    <div class="map-header">
+      <h2>Set Meeting Location</h2>
+      
+      <div class="location-mode-tabs">
+        <button id="manualModeBtn" class="mode-btn active" onclick="switchMode('manual')">
+          <i class="fas fa-map-pin"></i> Select Location
+        </button>
+        <button id="currentModeBtn" class="mode-btn" onclick="switchMode('current')">
+          <i class="fas fa-location-arrow"></i> Use My Location
+        </button>
+      </div>
+
+      <!-- Manual selection mode -->
+      <div id="manualMode" class="mode-section active">
+        <div class="instructions">
+          <strong>📍 Manual Selection:</strong> Click on the map to set your meeting location. Adjust the radius below to define the attendance area.
+        </div>
+      </div>
+
+      <!-- Use current location mode -->
+      <div id="currentMode" class="mode-section">
+        <div class="instructions">
+          <strong>📍 Current Location Mode:</strong> Use your device's current location as the meeting point. Set the radius and preview the attendance zone.
+        </div>
+        <button id="useCurrentBtn" class="current-location-btn" onclick="useCurrentLocation()">
+          <i class="fas fa-location-arrow"></i> Set Current Location
+        </button>
+
+      </div>
+
+      <div class="map-controls">
+        <div class="radius-control">
+          <label for="radius">Attendance Radius (meters):</label>
+          <input type="number" id="radius" value="100" min="10" max="500" oninput="updateRadiusPreview()">
+          <span id="radiusLabel" class="radius-label">100 m</span>
+        </div>
+        <div class="radius-info">
+          <small>You can set attendance area up to 500 meters</small>
+        </div>
+      </div>
+
+      <div id="previewSection" class="preview-section" style="display: none;">
+        <div class="preview-info">
+          <p><strong>Preview:</strong> <span id="previewText">Set a location to see the attendance area</span></p>
+          <p id="distanceInfo" style="font-size: 12px; color: #666; margin-top: 5px;"></p>
+        </div>
+      </div>
+
+      <div class="action-buttons">
+        <button id="saveLocationBtn" class="save-btn" onclick="saveLocation()" style="display: none;">
+          <i class="fas fa-check"></i> Confirm Location
+        </button>
+      </div>
+    </div>
+    <div id="map" style="height: 500px; width: 100%; border-radius: 8px; overflow: hidden;"></div>
+  </div>
+
+  <!-- Local Leaflet JS -->
+  <script src="../shared/leaflet.js"></script>
+
+  <script>
+    // Global state
+    let map, marker, circle;
+    let selectedLocation = null; // { lat, lng }
+    let currentMode = 'manual'; // 'manual' or 'current'
+
+    // Initialize map (default view)
+    map = L.map("map");
+
+    // Load OpenStreetMap tiles
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "© OpenStreetMap contributors",
+      maxZoom: 19
+    }).addTo(map);
+
+    // Center on user location if available
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+          map.setView([lat, lon], 18);
+
+          L.marker([lat, lon])
+            .addTo(map)
+            .bindPopup("Your current location")
+            .openPopup();
+        },
+        () => {
+          // fallback if permission denied
+          map.setView([12.9716, 77.5946], 15);
+        },
+        { enableHighAccuracy: true }
+      );
+    } else {
+      map.setView([12.9716, 77.5946], 15);
+    }
+
+    // Mode switching
+    function switchMode(mode) {
+      currentMode = mode;
+      
+      // Update tab styling
+      document.getElementById('manualModeBtn').classList.toggle('active', mode === 'manual');
+      document.getElementById('currentModeBtn').classList.toggle('active', mode === 'current');
+
+      // Update section visibility
+      document.getElementById('manualMode').classList.toggle('active', mode === 'manual');
+      document.getElementById('currentMode').classList.toggle('active', mode === 'current');
+
+      // Clear map visualization and reset preview/button for new selection
+      if (marker) map.removeLayer(marker);
+      if (circle) map.removeLayer(circle);
+      marker = null;
+      circle = null;
+      selectedLocation = null;
+      
+      // Reset preview and button visibility
+      document.getElementById('saveLocationBtn').style.display = 'none';
+      document.getElementById('previewSection').style.display = 'none';
+    }
+
+    // Clear map markers and circles
+    function clearMapVisualization() {
+      if (marker) map.removeLayer(marker);
+      if (circle) map.removeLayer(circle);
+      marker = null;
+      circle = null;
+      selectedLocation = null;
+      // Don't hide the button and preview section here - let updateCirclePreview control them
+    }
+
+    // Update radius preview when user changes the input
+    function updateRadiusPreview() {
+      const radius = Number(document.getElementById('radius').value);
+      document.getElementById('radiusLabel').textContent = radius + ' m';
+
+      if (selectedLocation) {
+        updateCirclePreview();
+      }
+    }
+
+    // Update circle on map based on selected location and radius
+    function updateCirclePreview() {
+      if (!selectedLocation) return;
+
+      const radius = Number(document.getElementById('radius').value);
+
+      if (circle) map.removeLayer(circle);
+
+      circle = L.circle([selectedLocation.lat, selectedLocation.lng], {
+        radius,
+        color: currentMode === 'manual' ? '#667eea' : '#28a745',
+        fillColor: currentMode === 'manual' ? '#667eea' : '#28a745',
+        fillOpacity: 0.15,
+        weight: 2
+      }).addTo(map);
+
+      // Update preview text
+      document.getElementById('previewSection').style.display = 'block';
+      document.getElementById('previewText').textContent = 
+        `Attendance area: ${radius}m radius. Attendees within this circle can mark attendance.`;
+      document.getElementById('distanceInfo').textContent = 
+        `Coverage: ~${(3.14 * radius * radius / 1000000).toFixed(4)} km²`;
+      
+      // Show save button
+      document.getElementById('saveLocationBtn').style.display = 'flex';
+    }
+
+    // Use current location
+    function useCurrentLocation() {
+      const btn = document.getElementById('useCurrentBtn');
+      btn.disabled = true;
+      btn.textContent = '⏳ Getting location...';
+
+      if (!navigator.geolocation) {
+        alert('Geolocation not supported on this device');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-location-arrow"></i> Set Current Location';
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+
+          selectedLocation = { lat, lng: lon };
+
+          // Center map on current location
+          map.setView([lat, lon], 18);
+
+          // Add marker
+          if (marker) map.removeLayer(marker);
+          marker = L.marker([lat, lon], {
+            icon: L.icon({
+              iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-green.png',
+              shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+              iconSize: [25, 41],
+              iconAnchor: [12, 41],
+              popupAnchor: [1, -34],
+              shadowSize: [41, 41]
+            })
+          }).addTo(map);
+
+          marker.bindPopup('Meeting Location').openPopup();
+
+          // Show circle preview
+          updateCirclePreview();
+
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fas fa-check"></i> Location Set!';
+          setTimeout(() => {
+            btn.innerHTML = '<i class="fas fa-location-arrow"></i> Set Current Location';
+          }, 2000);
+        },
+        error => {
+          alert('Failed to get your location. Please check permissions.');
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fas fa-location-arrow"></i> Set Current Location';
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    }
+
+    // Manual map click to set location (preview only, doesn't save)
+    map.on('click', (e) => {
+      if (currentMode !== 'manual') {
+        alert('Please switch to "Select Location" mode to click on the map');
+        return;
+      }
+
+      selectedLocation = { lat: e.latlng.lat, lng: e.latlng.lng };
+
+      // Add/update marker
+      if (marker) map.removeLayer(marker);
+      marker = L.marker(e.latlng).addTo(map);
+      marker.bindPopup('Meeting Location').openPopup();
+
+      // Show circle preview
+      updateCirclePreview();
+
+      // User must click "Confirm Location" button to save
+    });
+
+    // Save location
+    function saveLocation() {
+
+      if (!selectedLocation) {
+        alert("Please select location first.");
+        return;
+      }
+
+      const radius = Number(document.getElementById('radius').value);
+
+      const locationConfig = {
+        latitude: selectedLocation.lat,
+        longitude: selectedLocation.lng,
+        radius: radius
+      };
+
+      localStorage.setItem("locationConfig", JSON.stringify(locationConfig));
+
+      alert("Location saved successfully.");
+
+      window.close();
+    }
+
+  </script>
+
+</body>
+</html>
