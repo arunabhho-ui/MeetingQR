@@ -4,6 +4,11 @@ const form = document.getElementById("attendanceForm");
 const statusText = document.getElementById("status");
 const eventTitle = document.getElementById("eventTitle");
 
+
+/* ============================= */
+/* LOAD CONFIG */
+/* ============================= */
+
 function loadEffectiveConfig() {
 
   const savedEvent = localStorage.getItem("eventConfig");
@@ -17,8 +22,8 @@ function loadEffectiveConfig() {
 
 }
 
-
 loadEffectiveConfig();
+
 
 function loadConfigFromURL(){
 
@@ -40,9 +45,7 @@ function loadConfigFromURL(){
   }
 
   if(event){
-
     CONFIG.event.name = event;
-
   }
 
 }
@@ -51,20 +54,16 @@ loadConfigFromURL();
 
 console.log("FINAL CONFIG:", CONFIG);
 
-/* Redirect to denied page */
-function redirectToDenied(reason) {
+
+/* ============================= */
+/* REDIRECT TO DENIED */
+/* ============================= */
+
+function redirectToDenied(reason){
 
   const reasonMap = {
-    config_error: "Event not configured properly",
-    time_closed: "Attendance window closed",
     outside_location: "You are outside allowed location",
     device_duplicate: "Attendance already marked from this device",
-    incomplete_submission: "Please fill all required fields",
-    invalid_location: "Invalid location data",
-    geolocation_permission: "Location permission denied",
-    geolocation_unavailable: "Location unavailable",
-    geolocation_timeout: "Location timeout",
-    geolocation_error: "Location error",
     server_error: "Server error. Try again later"
   };
 
@@ -72,24 +71,25 @@ function redirectToDenied(reason) {
 
   window.location.href =
     `denied.html?reason=${encodeURIComponent(reason)}&message=${encodeURIComponent(message)}`;
-}
 
+}
 
 
 eventTitle.innerText =
   CONFIG?.event?.name || "Event Attendance";
 
 
-/* Device ID */
-function getDeviceId() {
+/* ============================= */
+/* DEVICE ID */
+/* ============================= */
+
+function getDeviceId(){
 
   let id = localStorage.getItem("deviceId");
 
-  if (!id) {
-
+  if(!id){
     id = crypto.randomUUID();
     localStorage.setItem("deviceId", id);
-
   }
 
   return id;
@@ -97,40 +97,40 @@ function getDeviceId() {
 }
 
 
-/* Distance calculation */
-function distanceMeters(lat1, lon1, lat2, lon2) {
+/* ============================= */
+/* DISTANCE */
+/* ============================= */
+
+function distanceMeters(lat1, lon1, lat2, lon2){
 
   const R = 6371000;
 
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const dLat = (lat2-lat1) * Math.PI/180;
+  const dLon = (lon2-lon1) * Math.PI/180;
 
   const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(lat1 * Math.PI / 180) *
-    Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLon / 2) ** 2;
+    Math.sin(dLat/2)**2 +
+    Math.cos(lat1*Math.PI/180) *
+    Math.cos(lat2*Math.PI/180) *
+    Math.sin(dLon/2)**2;
 
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const c = 2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 
-  return R * c;
+  return R*c;
 
 }
 
 
-/* Check eligibility */
+/* ============================= */
+/* INITIAL CHECK */
+/* ============================= */
 
-
-
-/* Initial load */
 async function initializeAttendance(){
-  console.log("Using location:", CONFIG.location);
+
   try{
 
-    // Show loading state on status text
-    statusText.classList.add("loading");
-    statusText.style.display = "block";
     statusText.innerText = "Checking eligibility...";
+    statusText.style.display = "block";
 
     const deviceId = getDeviceId();
 
@@ -145,46 +145,41 @@ async function initializeAttendance(){
       CONFIG.location.longitude
     );
 
-    console.log("Distance from event:", distance);
+    console.log("Distance:", distance);
 
-    // Allow 30 meter GPS tolerance
     if(distance > CONFIG.location.radius + 30){
+
       redirectToDenied("outside_location");
       return;
+
     }
 
+    /* FIREBASE DUPLICATE CHECK */
 
-    const res = await fetch(
-      CONFIG.googleScriptURL +
-      "?action=checkEligibility&deviceId=" +
-      deviceId
-    );
+    const existing =
+      localStorage.getItem(
+        "attendance_" + CONFIG.event.name
+      );
 
-    const text = await res.text();
+    if(existing){
 
-    console.log("Raw server response:", text);
-
-    const result = JSON.parse(text);
-
-
-    if(!result.eligible){
-      redirectToDenied(result.reason);
+      redirectToDenied("device_duplicate");
       return;
+
     }
 
-    form.style.display="block";
-    statusText.innerText="";
-    statusText.classList.remove("loading");
     statusText.style.display = "none";
-    console.log("CONFIG:", CONFIG);
-    console.log("Google Script URL:", CONFIG.googleScriptURL);
+
+    form.style.display = "block";
 
   }
   catch(err){
-    console.error("ERROR:", err);
-    redirectToDenied("server_error");
-  }
 
+    console.error(err);
+
+    redirectToDenied("server_error");
+
+  }
 
 }
 
@@ -192,121 +187,127 @@ initializeAttendance();
 
 
 
-/* Submit attendance */
+/* ============================= */
+/* SUBMIT */
+/* ============================= */
+
 form.addEventListener("submit", async e => {
 
   e.preventDefault();
 
-  // Validate required fields
-  const name = document.getElementById("name").value.trim();
-  const email = document.getElementById("email").value.trim();
-  const facultyId = document.getElementById("facultyId").value.trim();
-  const department = document.getElementById("department").value;
-  const otherDepartment = document.getElementById("otherDepartment").value.trim();
+  const name =
+    document.getElementById("name").value.trim();
 
-  if (!name || !email || !facultyId || !department) {
-    statusText.innerText = "Please fill all required fields";
+  const email =
+    document.getElementById("email").value.trim();
+
+  const facultyId =
+    document.getElementById("facultyId").value.trim();
+
+  const department =
+    document.getElementById("department").value;
+
+  const otherDepartment =
+    document.getElementById("otherDepartment").value.trim();
+
+
+  if(!name || !email || !facultyId || !department){
+
+    statusText.innerText =
+      "Please fill all required fields";
+
     return;
+
   }
 
-  if (department === "other" && !otherDepartment) {
-    statusText.innerText = "Please specify your department";
-    return;
-  }
 
-  // Show loading state on submit button
-  const submitBtn = form.querySelector('button[type="submit"]');
-  submitBtn.classList.add("loading");
+  const submitBtn =
+    form.querySelector('button[type="submit"]');
+
   submitBtn.disabled = true;
-  statusText.innerText = "Submitting attendance...";
 
-  const deviceId = getDeviceId();
-
-  const payload = new FormData();
-
-  /* IMPORTANT: tell Apps Script what action */
-  payload.append("action", "submitAttendance");
-
-  payload.append("eventName", CONFIG.event.name);
-
-  payload.append("name", name);
-
-  payload.append("email", email);
-
-  payload.append("facultyId", facultyId);
+  submitBtn.innerText = "Submitting...";
 
 
-  payload.append("department",
-    department === "other" ? otherDepartment : department);
+  try{
 
-  payload.append("deviceId", deviceId);
+    const deviceId = getDeviceId();
 
-  
-
-
-  try {
-
-    const pos = await new Promise((resolve, reject) =>
-      navigator.geolocation.getCurrentPosition(resolve, reject)
+    const pos = await new Promise((resolve,reject)=>
+      navigator.geolocation.getCurrentPosition(resolve,reject)
     );
 
-    payload.append("latitude", pos.coords.latitude);
-    payload.append("longitude", pos.coords.longitude);
 
-    console.log("Sending payload:",
-      Object.fromEntries(payload));
+    /* SAVE TO FIREBASE */
 
-    const params = new URLSearchParams(payload);
+    await saveAttendanceFirebase({
 
-    const res = await fetch(CONFIG.googleScriptURL,{
-      method:"POST",
-      headers:{
-        "Content-Type":"application/x-www-form-urlencoded"
-      },
-      body: params.toString()
+      timestamp: new Date().toISOString(),
+
+      eventName: CONFIG.event.name,
+
+      name,
+      email,
+      facultyId,
+
+      department:
+        department==="other"
+        ? otherDepartment
+        : department,
+
+      latitude: pos.coords.latitude,
+      longitude: pos.coords.longitude,
+
+      deviceId
+
     });
 
 
-    const result = await res.json();
+    /* SAVE LOCAL FLAG */
 
-    console.log("Server response:", result);
+    localStorage.setItem(
+      "attendance_" + CONFIG.event.name,
+      "true"
+    );
 
 
-    if (result.success) {
-
-      window.location.href = "success.html";
-
-    }
-    else if (result.reason === "duplicate_device") {
-
-      redirectToDenied("device_duplicate");
-
-    }
-    else{
-
-      redirectToDenied(result.reason || "server_error");
-
-    }
+    window.location.href =
+      "success.html";
 
 
   }
-  catch (err) {
+  catch(err){
 
     console.error(err);
-    submitBtn.classList.remove("loading");
+
     submitBtn.disabled = false;
-    statusText.innerText = "Error submitting attendance. Please try again.";
+
+    submitBtn.innerText = "Mark Attendance";
+
+    statusText.innerText =
+      "Error saving attendance";
 
   }
 
 });
 
-/* Handle "other" department selection */
-document.getElementById("department").addEventListener("change", e => {
-  const otherGroup = document.getElementById("otherDepartmentGroup");
-  if (e.target.value === "other") {
-    otherGroup.style.display = "block";
-  } else {
-    otherGroup.style.display = "none";
-  }
+
+/* ============================= */
+/* OTHER DEPARTMENT */
+/* ============================= */
+
+document
+.getElementById("department")
+.addEventListener("change", e => {
+
+  const otherGroup =
+    document.getElementById(
+      "otherDepartmentGroup"
+    );
+
+  otherGroup.style.display =
+    e.target.value==="other"
+    ? "block"
+    : "none";
+
 });
