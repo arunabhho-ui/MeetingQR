@@ -127,6 +127,11 @@ async function initializeAttendance(){
   console.log("Using location:", CONFIG.location);
   try{
 
+    // Show loading state on status text
+    statusText.classList.add("loading");
+    statusText.style.display = "block";
+    statusText.innerText = "Checking eligibility...";
+
     const deviceId = getDeviceId();
 
     const pos = await new Promise((resolve,reject)=>
@@ -169,6 +174,8 @@ async function initializeAttendance(){
 
     form.style.display="block";
     statusText.innerText="";
+    statusText.classList.remove("loading");
+    statusText.style.display = "none";
     console.log("CONFIG:", CONFIG);
     console.log("Google Script URL:", CONFIG.googleScriptURL);
 
@@ -207,6 +214,10 @@ form.addEventListener("submit", async e => {
     return;
   }
 
+  // Show loading state on submit button
+  const submitBtn = form.querySelector('button[type="submit"]');
+  submitBtn.classList.add("loading");
+  submitBtn.disabled = true;
   statusText.innerText = "Submitting attendance...";
 
   const deviceId = getDeviceId();
@@ -282,8 +293,9 @@ form.addEventListener("submit", async e => {
   catch (err) {
 
     console.error(err);
-
-    redirectToDenied("server_error");
+    submitBtn.classList.remove("loading");
+    submitBtn.disabled = false;
+    statusText.innerText = "Error submitting attendance. Please try again.";
 
   }
 
@@ -298,4 +310,3 @@ document.getElementById("department").addEventListener("change", e => {
     otherGroup.style.display = "none";
   }
 });
-
