@@ -331,11 +331,13 @@ async function downloadQR() {
     // Trigger download
     link.click();
     
-    // Wait before cleanup to ensure download starts
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    // Individual cleanup for QR - use longer delay to be safe
+    setTimeout(() => {
+      if (document.body.contains(link)) {
+        document.body.removeChild(link);
+      }
+      URL.revokeObjectURL(url);
+    }, 1000);
     
     setButtonLoading('downloadQRButton', false);
   } catch (err) {
@@ -479,17 +481,19 @@ async function downloadCSV() {
     // Trigger download
     link.click();
 
-    // Wait before cleanup to ensure download starts
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Individual cleanup for CSV - use immediate cleanup with check
+    setTimeout(() => {
+      if (document.body.contains(link)) {
+        document.body.removeChild(link);
+      }
+      URL.revokeObjectURL(url);
+    }, 200);
     
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    setButtonLoading("downloadCSVButton", false);
   }
   catch(err){
     console.error(err);
     alert("Download failed: " + err.message);
-  }
-  finally{
     setButtonLoading("downloadCSVButton", false);
   }
 }
