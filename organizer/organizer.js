@@ -314,10 +314,7 @@ function downloadQR() {
 
 /* Export CSV */
 function exportCSV() {
-  alert(
-    "Download CSV directly from Google Sheets:\n\n" +
-    "File → Download → CSV"
-  );
+  downloadCSV();
 }
 
 /* Email CSV */
