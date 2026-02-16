@@ -612,3 +612,4 @@ window.generateQR = generateQR;
 window.downloadQR = downloadQR;
 window.downloadCSV = downloadCSV;
 window.sendCSVToEmail = sendCSVToEmail;
+
