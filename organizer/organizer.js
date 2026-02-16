@@ -444,48 +444,44 @@ function downloadCSV() {
 }
 
 
-function sendCSVToEmail() {
+async function sendCSVToEmail(){
 
-  const email =
-    document.getElementById("directorEmail").value.trim();
+  try{
 
-  if (!email) {
+    const res =
+      await fetch(CONFIG.mailerScriptURL,{
 
-    alert("Enter email");
+        method:"POST",
 
-    return;
+        body:new URLSearchParams({
+
+          action:"sendAttendanceEmail"
+
+        })
+
+      });
+
+    const data =
+      await res.json();
+
+    if(data.success){
+
+      alert("Attendance emailed successfully");
+
+    }
+    else{
+
+      alert("Failed: "+data.error);
+
+    }
 
   }
+  catch(err){
 
-  fetch(CONFIG.googleScriptURL, {
-
-    method: "POST",
-
-    body: new URLSearchParams({
-
-      action: "emailCSV",
-
-      email: email
-
-    })
-
-  })
-  .then(res => res.json())
-  .then(data => {
-
-    if (data.success)
-      alert("CSV sent successfully");
-
-    else
-      alert("Failed: " + data.error);
-
-  })
-  .catch(err => {
+    alert("Error sending email");
 
     console.error(err);
 
-    alert("Error sending CSV");
-
-  });
+  }
 
 }
