@@ -412,20 +412,28 @@ async function downloadCSV() {
 
   try {
 
+    console.log("Starting CSV download...");
+
     const { getAllAttendance } = await import("../firebase.js");
+    
+    console.log("getAllAttendance imported successfully");
 
     const records = await getAllAttendance();
+    
+    console.log("Records retrieved:", records.length);
 
-    if (records.length === 0) {
+    if (!records || records.length === 0) {
       alert("No attendance records found");
       return;
     }
+
+    console.log("Creating CSV from", records.length, "records");
 
     // Create CSV header
     let csv = "Timestamp,Event,Name,Email,FacultyID,Department,Latitude,Longitude\n";
 
     // Add data rows
-    records.forEach(record => {
+    records.forEach((record, i) => {
       csv += `${record.timestamp || ""},` +
              `${record.eventName || ""},` +
              `${record.name || ""},` +
@@ -434,33 +442,44 @@ async function downloadCSV() {
              `${record.department || ""},` +
              `${record.latitude || ""},` +
              `${record.longitude || ""}\n`;
+      
+      if (i === 0) console.log("Sample CSV row:", csv.split('\n')[1]);
     });
 
+    console.log("CSV created, size:", csv.length, "bytes");
+
     // Create blob and download
-    const blob = new Blob([csv], { type: "text/csv" });
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    
+    console.log("Blob created, size:", blob.size, "bytes");
+    
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.href = url;
-    link.download = `attendance_${new Date().toISOString().split('T')[0]}.csv`;
+    link.setAttribute("href", url);
+    link.setAttribute("download", `attendance_${new Date().toISOString().split('T')[0]}.csv`);
     link.style.display = "none";
     document.body.appendChild(link);
     
-    console.log("Download link href:", link.href);
-    console.log("Triggering download...");
+    console.log("Download link created:", link.download);
+    console.log("Triggering download click...");
     
-    link.click();
+    link.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
     
     // Keep link in DOM for a bit longer before removing
     setTimeout(() => {
-      document.body.removeChild(link);
+      if (document.body.contains(link)) {
+        document.body.removeChild(link);
+      }
       URL.revokeObjectURL(url);
-    }, 500);
+      console.log("Download cleanup complete");
+    }, 1000);
 
-    alert("CSV downloaded successfully");
+    alert("CSV download started");
 
   }
   catch (err) {
     console.error("Download error:", err);
+    console.error("Error stack:", err.stack);
     alert("Failed to download CSV: " + err.message);
   }
 
