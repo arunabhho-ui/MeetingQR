@@ -463,18 +463,33 @@ async function downloadCSV() {
     console.log("Download link created:", link.download);
     console.log("Triggering download click...");
     
-    link.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
-    
-    // Keep link in DOM for a bit longer before removing
+    // Try to trigger download programmatically
+    try{
+      link.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+    }
+    catch(e){
+      console.warn('Programmatic click failed, will open blob in new tab as fallback', e);
+    }
+
+    // Also open the blob URL in a new tab as a reliable fallback
+    try{
+      const newTab = window.open(url, '_blank');
+      if (!newTab) console.warn('window.open blocked by browser popup blocker');
+    }
+    catch(e){
+      console.warn('Opening blob in new tab failed', e);
+    }
+
+    // Keep link in DOM and blob URL for a short while so user can save manually if needed
     setTimeout(() => {
       if (document.body.contains(link)) {
         document.body.removeChild(link);
       }
       URL.revokeObjectURL(url);
       console.log("Download cleanup complete");
-    }, 1000);
+    }, 15000);
 
-    alert("CSV download started");
+    alert("If the file didn't save automatically, a new tab was opened with the CSV — please save it manually.");
 
   }
   catch (err) {
