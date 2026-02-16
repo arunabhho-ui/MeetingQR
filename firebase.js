@@ -117,6 +117,7 @@ export async function getAllAttendance(){
       email: data.email || "",
       facultyId: data.facultyId || "",
       department: data.department || "",
+      deviceId: data.deviceId || "",
       latitude: data.latitude || "",
       longitude: data.longitude || ""
 
