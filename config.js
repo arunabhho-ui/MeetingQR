@@ -13,8 +13,6 @@ const CONFIG = {
     radius: 100
   },
 
-  googleScriptURL: "https://script.google.com/macros/s/AKfycbzNtB8BgJh4FNtIow0WRKxaaUoDeaLkdCWm-34iA6cB_N65jENdCTdljnpSvpCzgkxY/exec"
+  googleScriptURL: "https://script.google.com/macros/s/AKfycbygVzLES1366NrA4UQZ08s6tRoWGL_q-pwbAnHSXqax2MC9xzti7b8oBF81lQybZitM/exec"
 
 };
-
-
