@@ -439,85 +439,87 @@ window.addEventListener("focus", () => {
 
 
 async function downloadCSV() {
-  setButtonLoading('downloadCSVButton', true);
+
+  const button = document.getElementById("downloadCSVButton");
+  setButtonLoading("downloadCSVButton", true);
+
   try {
-    console.log("Starting CSV download...");
 
     const { getAllAttendance } = await import("../firebase.js");
-    
-    console.log("getAllAttendance imported successfully");
 
     const records = await getAllAttendance();
-    
-    console.log("Records retrieved:", records.length);
 
     if (!records || records.length === 0) {
       alert("No attendance records found");
-      setButtonLoading('downloadCSVButton', false);
       return;
     }
 
-    console.log("Creating CSV from", records.length, "records");
+    // Create CSV
+    let csv =
+      "Timestamp,Event,Name,Email,FacultyID,Department,Latitude,Longitude\n";
 
-    // Create CSV header
-    let csv = "Timestamp,Event,Name,Email,FacultyID,Department,Latitude,Longitude\n";
+    records.forEach(record => {
 
-    // Add data rows
-    records.forEach((record, i) => {
-      csv += `${record.timestamp || ""},` +
-             `${record.eventName || ""},` +
-             `${record.name || ""},` +
-             `${record.email || ""},` +
-             `${record.facultyId || ""},` +
-             `${record.department || ""},` +
-             `${record.latitude || ""},` +
-             `${record.longitude || ""}\n`;
-      
-      if (i === 0) console.log("Sample CSV row:", csv.split('\n')[1]);
+      csv +=
+        `${record.timestamp || ""},` +
+        `${record.eventName || ""},` +
+        `${record.name || ""},` +
+        `${record.email || ""},` +
+        `${record.facultyId || ""},` +
+        `${record.department || ""},` +
+        `${record.latitude || ""},` +
+        `${record.longitude || ""}\n`;
+
     });
 
-    console.log("CSV created, size:", csv.length, "bytes");
 
     // Create blob
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    
-    console.log("Blob created, size:", blob.size, "bytes");
-    
-    // Generate filename based on meeting name
-    let filename = "Attendance Report.csv";
-    if (CONFIG.event && CONFIG.event.name) {
-      filename = `${CONFIG.event.name} Attendance Report.csv`;
+    const blob = new Blob([csv], {
+      type: "text/csv"
+    });
+
+
+    // Generate filename
+    let filename = "Attendance.csv";
+
+    if(CONFIG.event?.name){
+      filename = `${CONFIG.event.name} Attendance.csv`;
     }
-    
-    // Create object URL and trigger download
+
+
+    // SAME METHOD AS QR DOWNLOAD (works reliably)
     const url = URL.createObjectURL(blob);
+
     const link = document.createElement("a");
+
     link.href = url;
+
     link.download = filename;
-    link.style.display = "none";
+
     document.body.appendChild(link);
-    
-    console.log("Download link created:", filename);
-    console.log("Triggering download click...");
-    
-    // Trigger download
+
     link.click();
-    
-    // Cleanup immediately after click
+
     document.body.removeChild(link);
-    setTimeout(() => URL.revokeObjectURL(url), 100);
-    
-    console.log("CSV download complete");
-    setButtonLoading('downloadCSVButton', false);
 
-  } catch (err) {
-    console.error("Download error:", err);
-    console.error("Error stack:", err.stack);
-    alert("Failed to download CSV: " + err.message);
-    setButtonLoading('downloadCSVButton', false);
+    URL.revokeObjectURL(url);
+
+
   }
-}
+  catch(err){
 
+    console.error(err);
+
+    alert("Download failed: " + err.message);
+
+  }
+  finally{
+
+    setButtonLoading("downloadCSVButton", false);
+
+  }
+
+}
 
 async function sendCSVToEmail(){
   setButtonLoading('emailCSVButton', true);
