@@ -1,22 +1,5 @@
 import { CONFIG } from "../config.js";
 
-/* Helper function to set loading state on button */
-function setButtonLoading(buttonId, isLoading) {
-  const button = document.getElementById(buttonId);
-  if (!button) return;
-  
-  if (isLoading) {
-    button.disabled = true;
-    button.dataset.originalText = button.innerHTML;
-    button.innerHTML = `<span class="spinner"></span> Loading...`;
-  } else {
-    button.disabled = false;
-    if (button.dataset.originalText) {
-      button.innerHTML = button.dataset.originalText;
-    }
-  }
-}
-
 /* Auto-fill current time when page loads */
 function getCurrentTime() {
   const now = new Date();
@@ -298,51 +281,32 @@ function formatTimeUntil(targetDate) {
 }
 
 /* Download QR code - FIXED: Simplified and reliable */
-async function downloadQR() {
+function downloadQR() {
+
   const qrImage = document.getElementById("qrImage");
-  
-  if (!qrImage.src || qrImage.src === window.location.href) {
-    alert("Please generate a QR code first");
+
+  if (!qrImage.src) {
+    alert("Generate QR code first");
     return;
   }
 
-  setButtonLoading('downloadQRButton', true);
+  const link = document.createElement("a");
 
-  try {
-    // Fetch the image as a blob
-    const response = await fetch(qrImage.src);
-    if (!response.ok) {
-      throw new Error('Failed to fetch QR code');
-    }
-    
-    const blob = await response.blob();
-    
-    // Create filename from event name
-    const eventName = CONFIG.event?.name || 'event';
-    const filename = `${eventName.replace(/[^a-z0-9]/gi, '_')}_QR.png`;
-    
-    // Create download link
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    
-    // Trigger download
-    document.body.appendChild(link);
-    link.click();
-    
-    // Clean up immediately
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
-    
-    console.log("QR code downloaded:", filename);
-  } catch (error) {
-    console.error('Error downloading QR code:', error);
-    alert('Failed to download QR code. Please try again.');
-  } finally {
-    setButtonLoading('downloadQRButton', false);
-  }
+  link.href = qrImage.src;
+
+  const eventName =
+    CONFIG.event?.name?.replace(/[^a-z0-9]/gi, "_") || "event";
+
+  link.download = eventName + "_QR.png";
+
+  document.body.appendChild(link);
+
+  link.click();
+
+  document.body.removeChild(link);
+
 }
+
 
 /* Initialize on page load */
 document.addEventListener("DOMContentLoaded", () => {
@@ -414,74 +378,77 @@ window.addEventListener("focus", () => {
 });
 
 async function downloadCSV() {
-  setButtonLoading("downloadCSVButton", true);
-  
+
   try {
-    const { getAllAttendance } = await import("../firebase.js");
-    const records = await getAllAttendance();
+
+    const { getAllAttendance } =
+      await import("../firebase.js");
+
+    const records =
+      await getAllAttendance();
 
     if (!records || records.length === 0) {
       alert("No attendance records found");
-      setButtonLoading("downloadCSVButton", false);
       return;
     }
 
-    // Create CSV
-    let csv = "Timestamp,Event,Name,Email,FacultyID,Department,Latitude,Longitude\n";
-    
-    records.forEach(record => {
+    let csv =
+      "Timestamp,Event,Name,Email,FacultyID,Department,Latitude,Longitude\n";
+
+    records.forEach(r => {
+
       csv +=
-        `${record.timestamp || ""},` +
-        `${record.eventName || ""},` +
-        `${record.name || ""},` +
-        `${record.email || ""},` +
-        `${record.facultyId || ""},` +
-        `${record.department || ""},` +
-        `${record.latitude || ""},` +
-        `${record.longitude || ""}\n`;
+        `${r.timestamp || ""},` +
+        `${r.eventName || ""},` +
+        `${r.name || ""},` +
+        `${r.email || ""},` +
+        `${r.facultyId || ""},` +
+        `${r.department || ""},` +
+        `${r.latitude || ""},` +
+        `${r.longitude || ""}\n`;
+
     });
 
-    // Create blob
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const blob =
+      new Blob([csv], { type: "text/csv" });
 
-    // Generate filename
-    let filename = "Attendance_Report.csv";
-    if (CONFIG.event?.name) {
-      filename = `${CONFIG.event.name.replace(/[^a-z0-9]/gi, '_')}_Attendance.csv`;
-    }
+    const link =
+      document.createElement("a");
 
-    // Create download link
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
+    const url =
+      URL.createObjectURL(blob);
+
     link.href = url;
-    link.download = filename;
-    
-    // Trigger download
+
+    const eventName =
+      CONFIG.event?.name?.replace(/[^a-z0-9]/gi, "_") || "Attendance";
+
+    link.download =
+      eventName + "_Attendance.csv";
+
     document.body.appendChild(link);
+
     link.click();
-    
-    // Clean up immediately
+
     document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
-    
-    console.log("CSV downloaded:", filename);
-  } catch (err) {
-    console.error(err);
-    alert("Download failed: " + err.message);
-  } finally {
-    setButtonLoading("downloadCSVButton", false);
+
   }
+  catch(err){
+
+    console.error(err);
+
+    alert("Download failed");
+
+  }
+
 }
 
 async function sendCSVToEmail() {
-  setButtonLoading('emailCSVButton', true);
-  
   try {
     const email = document.getElementById("directorEmail").value.trim();
 
     if (!email) {
       alert("Enter email first");
-      setButtonLoading('emailCSVButton', false);
       return;
     }
 
@@ -503,8 +470,6 @@ async function sendCSVToEmail() {
   } catch (err) {
     console.error(err);
     alert("Email failed");
-  } finally {
-    setButtonLoading('emailCSVButton', false);
   }
 }
 
