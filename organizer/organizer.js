@@ -550,7 +550,10 @@ function scheduleDirectorEmail(){
 
   const event = CONFIG.event;
 
-  if(!event) return;
+  if(!event || !event.date || !event.startTime){
+    console.log("Event not configured, email not scheduled");
+    return;
+  }
 
   const endTime =
     new Date(`${event.date}T${event.startTime}`);
@@ -562,16 +565,26 @@ function scheduleDirectorEmail(){
   const delay =
     endTime.getTime() - Date.now();
 
+  console.log("Email scheduled in ms:", delay);
+
+  // CRITICAL FIX:
+  // NEVER send immediately if delay <= 0
   if(delay <= 0){
+
+    console.log("Event already ended — not sending email automatically");
+
+    return;
+
+  }
+
+  setTimeout(()=>{
+
     sendDirectorEmailNow();
-  }
-  else{
 
-    setTimeout(sendDirectorEmailNow, delay);
-
-  }
+  }, delay);
 
 }
+
 
 
 async function sendDirectorEmailNow(){
