@@ -318,21 +318,24 @@ async function downloadQR() {
     if (!response.ok) throw new Error('Failed to fetch QR image');
     const blob = await response.blob();
     
-    // Create blob URL and download
-    const blobUrl = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = blobUrl;
-    const filename = (CONFIG.event && CONFIG.event.name) ? `${CONFIG.event.name}_QR.png` : 'event_QR.png';
-    link.download = filename;
-    link.style.display = "none";
-    document.body.appendChild(link);
-    
-    // Trigger download - opens Save As dialog
-    link.click();
-    
-    // Cleanup
-    document.body.removeChild(link);
-    URL.revokeObjectURL(blobUrl);
+    // Convert blob to base64 data URL (NOT revokable)
+    const reader = new FileReader();
+    reader.onload = function() {
+      const base64DataUrl = reader.result;
+      const link = document.createElement('a');
+      link.href = base64DataUrl;
+      const filename = (CONFIG.event && CONFIG.event.name) ? `${CONFIG.event.name}_QR.png` : 'event_QR.png';
+      link.download = filename;
+      link.style.display = "none";
+      document.body.appendChild(link);
+      
+      // Trigger download - opens Save As dialog
+      link.click();
+      
+      // Cleanup
+      document.body.removeChild(link);
+    };
+    reader.readAsDataURL(blob);
   } catch (err) {
     console.error('Failed to download QR image', err);
     alert('Failed to download QR image: ' + err.message);
@@ -612,4 +615,3 @@ window.generateQR = generateQR;
 window.downloadQR = downloadQR;
 window.downloadCSV = downloadCSV;
 window.sendCSVToEmail = sendCSVToEmail;
-
