@@ -475,3 +475,11 @@ async function sendCSVToEmail(){
   }
 
 }
+/* Expose functions to global scope for HTML onclick handlers */
+window.saveEvent = saveEvent;
+window.openLocationPage = openLocationPage;
+window.setPresetLocation = setPresetLocation;
+window.generateQR = generateQR;
+window.downloadQR = downloadQR;
+window.downloadCSV = downloadCSV;
+window.sendCSVToEmail = sendCSVToEmail;
