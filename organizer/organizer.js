@@ -39,8 +39,6 @@ function loadEventState() {
   if (presetEl) presetEl.innerText = "";
 }
 
-/* Load saved location config from localStorage */
-
 /* Load location from storage (called when map.html saves location) */
 function updateLocationFromStorage() {
   const saved = localStorage.getItem("locationConfig");
@@ -56,15 +54,10 @@ function updateLocationFromStorage() {
 
 /* Read location directly from localStorage (authoritative) */
 function readStoredLocation() {
-
   const saved = localStorage.getItem("locationConfig");
-
   if (!saved) return null;
-
   try {
-
     const cfg = JSON.parse(saved);
-
     if (
       cfg &&
       typeof cfg.latitude === "number" &&
@@ -73,14 +66,11 @@ function readStoredLocation() {
     ) {
       return cfg;
     }
-
   } catch (e) {
     console.error("Location parse error:", e);
   }
-
   return null;
 }
-
 
 /* Save event details and update CONFIG */
 function saveEvent() {
@@ -198,14 +188,12 @@ async function generateQR() {
   setButtonLoading('generateQR', true);
   try {
     // Clear any leftover attendance immediately when a new QR is generated.
-    // Do NOT email director at this time; director will be emailed when event ends.
-    try{
-      await fetch(CONFIG.mailerScriptURL,{
+    try {
+      await fetch(CONFIG.mailerScriptURL, {
         method: "POST",
         body: new URLSearchParams({ action: "clearAttendance" })
       });
-    }
-    catch(e){
+    } catch (e) {
       console.warn('Failed to clear previous attendance:', e);
     }
 
@@ -255,6 +243,12 @@ async function generateQR() {
 
     document.getElementById("qrSection").style.display = "block";
     
+    // Update event title display
+    document.getElementById("eventTitle").textContent = eventName;
+    
+    // Start the timer
+    startQRTimer();
+    
     // Schedule director email for event end time
     scheduleDirectorEmail();
   } finally {
@@ -262,12 +256,11 @@ async function generateQR() {
   }
 }
 
-
-
-
 /* Start countdown timer for QR validity */
 function startQRTimer() {
   const event = CONFIG.event;
+  if (!event) return;
+  
   const start = new Date(`${event.date}T${event.startTime}`);
   const end = new Date(start.getTime() + event.durationMinutes * 60000);
   
@@ -304,64 +297,51 @@ function formatTimeUntil(targetDate) {
   return `${seconds}s`;
 }
 
-/* Download QR code */
+/* Download QR code - FIXED: Simplified and reliable */
 async function downloadQR() {
-  setButtonLoading('downloadQRButton', true);
-  try {
-    const qrImage = document.getElementById("qrImage");
-    if (!qrImage.src) {
-      alert("Generate QR code first");
-      setButtonLoading('downloadQRButton', false);
-      return;
-    }
-
-    // Fetch the image as a blob
-    const res = await fetch(qrImage.src);
-    if (!res.ok) throw new Error('Network response was not ok');
-    const blob = await res.blob();
-    
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    const filename = (CONFIG.event && CONFIG.event.name) ? `${CONFIG.event.name}-QR.png` : 'event-QR.png';
-    link.download = filename;
-    link.style.display = "none";
-    document.body.appendChild(link);
-    
-    // Trigger download
-    link.click();
-    
-    // Individual cleanup for QR - use longer delay to be safe
-    setTimeout(() => {
-      if (document.body.contains(link)) {
-        document.body.removeChild(link);
-      }
-      URL.revokeObjectURL(url);
-    }, 1000);
-    
-    setButtonLoading('downloadQRButton', false);
-  } catch (err) {
-    console.error('Failed to download QR image', err);
-    alert('Failed to download QR image: ' + err.message);
-    setButtonLoading('downloadQRButton', false);
-  }
-}
-
-/* Export CSV */
-function exportCSV() {
-  downloadCSV();
-}
-
-/* Email CSV */
-function emailCSV() {
-  const email = document.getElementById("directorEmail").value.trim();
-  if (!email) {
-    alert("Please enter director email");
+  const qrImage = document.getElementById("qrImage");
+  
+  if (!qrImage.src || qrImage.src === window.location.href) {
+    alert("Please generate a QR code first");
     return;
   }
-  
-  // In a real app, this would call your backend
-  alert(`CSV will be sent to: ${email}`);
+
+  setButtonLoading('downloadQRButton', true);
+
+  try {
+    // Fetch the image as a blob
+    const response = await fetch(qrImage.src);
+    if (!response.ok) {
+      throw new Error('Failed to fetch QR code');
+    }
+    
+    const blob = await response.blob();
+    
+    // Create filename from event name
+    const eventName = CONFIG.event?.name || 'event';
+    const filename = `${eventName.replace(/[^a-z0-9]/gi, '_')}_QR.png`;
+    
+    // Create download link
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    
+    // Trigger download
+    document.body.appendChild(link);
+    link.click();
+    
+    // Clean up immediately
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+    
+    console.log("QR code downloaded:", filename);
+  } catch (error) {
+    console.error('Error downloading QR code:', error);
+    alert('Failed to download QR code. Please try again.');
+  } finally {
+    setButtonLoading('downloadQRButton', false);
+  }
 }
 
 /* Initialize on page load */
@@ -390,21 +370,25 @@ document.addEventListener("DOMContentLoaded", () => {
   
   // Add real-time listeners to all event detail fields for instant validation
   document.getElementById("eventName").addEventListener("input", () => {
+    CONFIG.event = CONFIG.event || {};
     CONFIG.event.name = document.getElementById("eventName").value;
     updateQRButtonState();
   });
   
   document.getElementById("eventDate").addEventListener("change", () => {
+    CONFIG.event = CONFIG.event || {};
     CONFIG.event.date = document.getElementById("eventDate").value;
     updateQRButtonState();
   });
   
   document.getElementById("startTime").addEventListener("input", () => {
+    CONFIG.event = CONFIG.event || {};
     CONFIG.event.startTime = document.getElementById("startTime").value;
     updateQRButtonState();
   });
   
   document.getElementById("duration").addEventListener("input", () => {
+    CONFIG.event = CONFIG.event || {};
     const duration = document.getElementById("duration").value;
     CONFIG.event.durationMinutes = duration ? parseInt(duration) : 0;
     updateQRButtonState();
@@ -419,24 +403,19 @@ document.addEventListener("DOMContentLoaded", () => {
       updateQRButtonState();
     }
   });
-  
-  // Do NOT call scheduleDirectorEmail here - it will be called after QR is generated
 });
 
 /* Also check for location updates when page regains focus */
 window.addEventListener("focus", () => {
-
   // reload location from localStorage
   updateLocationFromStorage();
-
   // update UI
   updateQRButtonState();
-
 });
-
 
 async function downloadCSV() {
   setButtonLoading("downloadCSVButton", true);
+  
   try {
     const { getAllAttendance } = await import("../firebase.js");
     const records = await getAllAttendance();
@@ -449,6 +428,7 @@ async function downloadCSV() {
 
     // Create CSV
     let csv = "Timestamp,Event,Name,Email,FacultyID,Department,Latitude,Longitude\n";
+    
     records.forEach(record => {
       csv +=
         `${record.timestamp || ""},` +
@@ -465,159 +445,106 @@ async function downloadCSV() {
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
 
     // Generate filename
-    let filename = "Attendance Report.csv";
-    if(CONFIG.event?.name){
-      filename = `${CONFIG.event.name} Attendance Report.csv`;
+    let filename = "Attendance_Report.csv";
+    if (CONFIG.event?.name) {
+      filename = `${CONFIG.event.name.replace(/[^a-z0-9]/gi, '_')}_Attendance.csv`;
     }
 
-    // Create download link and trigger
-    const url = URL.createObjectURL(blob);
+    // Create download link
+    const url = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
     link.download = filename;
-    link.style.display = "none";
-    document.body.appendChild(link);
-
-    // Trigger download
-    link.click();
-
-    // Individual cleanup for CSV - use immediate cleanup with check
-    setTimeout(() => {
-      if (document.body.contains(link)) {
-        document.body.removeChild(link);
-      }
-      URL.revokeObjectURL(url);
-    }, 200);
     
-    setButtonLoading("downloadCSVButton", false);
-  }
-  catch(err){
+    // Trigger download
+    document.body.appendChild(link);
+    link.click();
+    
+    // Clean up immediately
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+    
+    console.log("CSV downloaded:", filename);
+  } catch (err) {
     console.error(err);
     alert("Download failed: " + err.message);
+  } finally {
     setButtonLoading("downloadCSVButton", false);
   }
 }
 
-async function sendCSVToEmail(){
+async function sendCSVToEmail() {
   setButtonLoading('emailCSVButton', true);
-  try{
+  
+  try {
+    const email = document.getElementById("directorEmail").value.trim();
 
-    const email =
-      document.getElementById("directorEmail").value.trim();
-
-    if(!email){
+    if (!email) {
       alert("Enter email first");
       setButtonLoading('emailCSVButton', false);
       return;
     }
 
-    const res =
-      await fetch(CONFIG.mailerScriptURL,{
+    const res = await fetch(CONFIG.mailerScriptURL, {
+      method: "POST",
+      body: new URLSearchParams({
+        action: "sendAttendanceEmail",
+        email: email
+      })
+    });
 
-        method:"POST",
+    const data = await res.json();
 
-        body:new URLSearchParams({
-
-          action:"sendAttendanceEmail",
-          email:email
-
-        })
-
-      });
-
-    const data =
-      await res.json();
-
-    if(data.success){
-
+    if (data.success) {
       alert("Attendance emailed to " + email);
-
+    } else {
+      alert("Failed: " + data.error);
     }
-    else{
-
-      alert("Failed: "+data.error);
-
-    }
-
-  }
-  catch(err){
-
+  } catch (err) {
     console.error(err);
     alert("Email failed");
-
-  }
-  finally{
+  } finally {
     setButtonLoading('emailCSVButton', false);
   }
-
 }
 
-function scheduleDirectorEmail(){
-
+function scheduleDirectorEmail() {
   const event = CONFIG.event;
 
-  if(!event || !event.date || !event.startTime){
+  if (!event || !event.date || !event.startTime) {
     console.log("Event not configured, email not scheduled");
     return;
   }
 
-  const endTime =
-    new Date(`${event.date}T${event.startTime}`);
-
-  endTime.setMinutes(
-    endTime.getMinutes() + event.durationMinutes
-  );
-
-  const delay =
-    endTime.getTime() - Date.now();
+  const endTime = new Date(`${event.date}T${event.startTime}`);
+  endTime.setMinutes(endTime.getMinutes() + event.durationMinutes);
+  const delay = endTime.getTime() - Date.now();
 
   console.log("Email scheduled in ms:", delay);
 
-  // CRITICAL FIX:
-  // NEVER send immediately if delay <= 0
-  if(delay <= 0){
-
+  // Never send immediately if delay <= 0
+  if (delay <= 0) {
     console.log("Event already ended — not sending email automatically");
-
     return;
-
   }
 
-  setTimeout(()=>{
-
+  setTimeout(() => {
     sendDirectorEmailNow();
-
   }, delay);
-
 }
 
-
-
-async function sendDirectorEmailNow(){
-
-  try{
-
-    await fetch(CONFIG.mailerScriptURL,{
-
-      method:"POST",
-
-      body:new URLSearchParams({
-
-        action:"sendDirectorEmail"
-
+async function sendDirectorEmailNow() {
+  try {
+    await fetch(CONFIG.mailerScriptURL, {
+      method: "POST",
+      body: new URLSearchParams({
+        action: "sendDirectorEmail"
       })
-
     });
-
     console.log("Director email sent");
-
-  }
-  catch(err){
-
+  } catch (err) {
     console.error(err);
-
   }
-
 }
 
 /* Expose functions to global scope for HTML onclick handlers */
