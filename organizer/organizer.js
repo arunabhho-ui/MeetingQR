@@ -305,46 +305,26 @@ function formatTimeUntil(targetDate) {
 }
 
 /* Download QR code */
-async function downloadQR() {
-  setButtonLoading('downloadQRButton', true);
-  try {
-    const qrImage = document.getElementById("qrImage");
-    if (!qrImage.src) {
-      alert("Generate QR code first");
-      setButtonLoading('downloadQRButton', false);
-      return;
-    }
-
-    // Fetch the image as a blob
-    const res = await fetch(qrImage.src);
-    if (!res.ok) throw new Error('Network response was not ok');
-    const blob = await res.blob();
-    
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    const filename = (CONFIG.event && CONFIG.event.name) ? `${CONFIG.event.name}-QR.png` : 'event-QR.png';
-    link.download = filename;
-    link.style.display = "none";
-    document.body.appendChild(link);
-    
-    // Trigger download
-    link.click();
-    
-    // Individual cleanup for QR - use longer delay to be safe
-    setTimeout(() => {
-      if (document.body.contains(link)) {
-        document.body.removeChild(link);
-      }
-      URL.revokeObjectURL(url);
-    }, 1000);
-    
-    setButtonLoading('downloadQRButton', false);
-  } catch (err) {
-    console.error('Failed to download QR image', err);
-    alert('Failed to download QR image: ' + err.message);
-    setButtonLoading('downloadQRButton', false);
+function downloadQR() {
+  const qrImage = document.getElementById("qrImage");
+  if (!qrImage.src) {
+    alert("Generate QR code first");
+    return;
   }
+
+  // Direct download using the QR image source
+  const link = document.createElement('a');
+  link.href = qrImage.src;
+  const filename = (CONFIG.event && CONFIG.event.name) ? `${CONFIG.event.name}_QR.png` : 'event_QR.png';
+  link.download = filename;
+  link.style.display = "none";
+  document.body.appendChild(link);
+  
+  // Trigger download - opens Save As dialog
+  link.click();
+  
+  // Cleanup immediately
+  document.body.removeChild(link);
 }
 
 /* Export CSV */
@@ -447,7 +427,7 @@ async function downloadCSV() {
       return;
     }
 
-    // Create CSV
+    // Create CSV content
     let csv = "Timestamp,Event,Name,Email,FacultyID,Department,Latitude,Longitude\n";
     records.forEach(record => {
       csv +=
@@ -461,33 +441,25 @@ async function downloadCSV() {
         `${record.longitude || ""}\n`;
     });
 
-    // Create blob
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-
     // Generate filename
-    let filename = "Attendance Report.csv";
+    let filename = "Attendance_Report.csv";
     if(CONFIG.event?.name){
-      filename = `${CONFIG.event.name} Attendance Report.csv`;
+      filename = `${CONFIG.event.name.replace(/\s+/g, '_')}_Attendance.csv`;
     }
 
-    // Create download link and trigger
-    const url = URL.createObjectURL(blob);
+    // Create data URL and trigger download
+    const dataUrl = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
     const link = document.createElement("a");
-    link.href = url;
+    link.href = dataUrl;
     link.download = filename;
     link.style.display = "none";
     document.body.appendChild(link);
-
-    // Trigger download
+    
+    // Trigger download - opens Save As dialog
     link.click();
-
-    // Individual cleanup for CSV - use immediate cleanup with check
-    setTimeout(() => {
-      if (document.body.contains(link)) {
-        document.body.removeChild(link);
-      }
-      URL.revokeObjectURL(url);
-    }, 200);
+    
+    // Cleanup immediately
+    document.body.removeChild(link);
     
     setButtonLoading("downloadCSVButton", false);
   }
