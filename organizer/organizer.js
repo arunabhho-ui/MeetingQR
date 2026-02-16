@@ -170,7 +170,7 @@ function setPresetLocation(name) {
     localStorage.setItem('locationConfig', JSON.stringify(p));
     CONFIG.location = p;
     const el = document.getElementById('presetSelected');
-    if (el) el.innerText = `Selected: ${name} (${p.latitude.toFixed(6)}, ${p.longitude.toFixed(6)})`;
+    if (el) el.innerText = `${name} Selected`;
     updateQRButtonState();
     alert(`Location set to ${name}`);
   } catch (err) {
