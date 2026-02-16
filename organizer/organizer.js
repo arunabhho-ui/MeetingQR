@@ -373,7 +373,18 @@ document.addEventListener("DOMContentLoaded",()=>{
   document.getElementById("startTime").value =
     getCurrentTime();
 
+  flatpickr("#eventDate",{
+    enableTime:false,
+    dateFormat:"Y-m-d"
+  });
+
 });
+
+function openLocationPage(){
+
+  window.location.href="./map.html";
+
+}
 
 /* ---------- EXPORT GLOBAL ---------- */
 
@@ -382,4 +393,5 @@ window.setPresetLocation=setPresetLocation;
 window.generateQR=generateQR;
 window.downloadQR=downloadQR;
 window.downloadCSV=downloadCSV;
-window.sendCSVToEmail=sendCSVToEmail;}}}
+window.sendCSVToEmail=sendCSVToEmail;
+window.openLocationPage=openLocationPage;}}}
