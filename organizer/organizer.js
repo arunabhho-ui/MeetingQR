@@ -18,6 +18,27 @@ function getCurrentTime(){
 
 
 /* ============================= */
+/* INITIALIZE DATE PICKER */
+/* ============================= */
+
+function initializeDatePicker(){
+
+  flatpickr("#eventDate", {
+
+    mode: "single",
+
+    dateFormat: "Y-m-d",
+
+    minDate: "today",
+
+    placeholder: "Select a date"
+
+  });
+
+}
+
+
+/* ============================= */
 /* LOAD EVENT STATE */
 /* ============================= */
 
@@ -33,6 +54,8 @@ function loadEventState(){
   document.getElementById("duration").value = "";
 
   localStorage.removeItem("locationConfig");
+
+  initializeDatePicker();
 
 }
 
