@@ -440,7 +440,6 @@ window.addEventListener("focus", () => {
 
 async function downloadCSV() {
 
-  const button = document.getElementById("downloadCSVButton");
   setButtonLoading("downloadCSVButton", true);
 
   try {
@@ -451,6 +450,7 @@ async function downloadCSV() {
 
     if (!records || records.length === 0) {
       alert("No attendance records found");
+      setButtonLoading("downloadCSVButton", false);
       return;
     }
 
@@ -475,19 +475,19 @@ async function downloadCSV() {
 
     // Create blob
     const blob = new Blob([csv], {
-      type: "text/csv"
+      type: "text/csv;charset=utf-8;"
     });
 
 
     // Generate filename
-    let filename = "Attendance.csv";
+    let filename = "Attendance Report.csv";
 
     if(CONFIG.event?.name){
-      filename = `${CONFIG.event.name} Attendance.csv`;
+      filename = `${CONFIG.event.name} Attendance Report.csv`;
     }
 
 
-    // SAME METHOD AS QR DOWNLOAD (works reliably)
+    // SAME METHOD AS QR DOWNLOAD (works reliably with Save As dialog)
     const url = URL.createObjectURL(blob);
 
     const link = document.createElement("a");
@@ -496,13 +496,17 @@ async function downloadCSV() {
 
     link.download = filename;
 
+    link.style.display = "none";
+
     document.body.appendChild(link);
 
+    // Trigger download
     link.click();
 
+    // Cleanup immediately after click
     document.body.removeChild(link);
 
-    URL.revokeObjectURL(url);
+    setTimeout(() => URL.revokeObjectURL(url), 100);
 
 
   }
