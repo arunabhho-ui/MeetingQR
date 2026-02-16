@@ -205,33 +205,47 @@ async function generateQR() {
     return;
   }
 
-  CONFIG.event = {
-    name: eventName,
-    date: eventDate,
-    startTime: startTime,
-    durationMinutes: parseInt(duration)
-  };
+  // Show loading state on button
+  const generateBtn = document.getElementById("generateQR");
+  generateBtn.classList.add("loading");
+  generateBtn.disabled = true;
 
-  CONFIG.location = loc;
+  try {
+    CONFIG.event = {
+      name: eventName,
+      date: eventDate,
+      startTime: startTime,
+      durationMinutes: parseInt(duration)
+    };
 
-  console.log("Using location:", loc);
+    CONFIG.location = loc;
 
-  await createEventOnServer();
+    console.log("Using location:", loc);
 
-  const url =
-    `${window.location.origin}/MeetingQR/attendee/index.html` +
-    `?event=${encodeURIComponent(eventName)}` +
-    `&lat=${loc.latitude}` +
-    `&lng=${loc.longitude}` +
-    `&radius=${loc.radius}`;
+    await createEventOnServer();
 
-  console.log("QR URL:", url);
+    const url =
+      `${window.location.origin}/MeetingQR/attendee/index.html` +
+      `?event=${encodeURIComponent(eventName)}` +
+      `&lat=${loc.latitude}` +
+      `&lng=${loc.longitude}` +
+      `&radius=${loc.radius}`;
 
-  document.getElementById("qrImage").src =
-    "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=" +
-    encodeURIComponent(url);
+    console.log("QR URL:", url);
 
-  document.getElementById("qrSection").style.display = "block";
+    document.getElementById("qrImage").src =
+      "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=" +
+      encodeURIComponent(url);
+
+    document.getElementById("qrSection").style.display = "block";
+  } catch (err) {
+    console.error("Error generating QR:", err);
+    alert("❌ Failed to generate QR code. Please try again.");
+  } finally {
+    // Remove loading state
+    generateBtn.classList.remove("loading");
+    generateBtn.disabled = false;
+  }
 }
 
 
@@ -306,6 +320,11 @@ function downloadQR() {
     return;
   }
 
+  // Show loading state on button
+  const downloadBtn = document.getElementById("downloadQRButton");
+  downloadBtn.classList.add("loading");
+  downloadBtn.disabled = true;
+
   // Fetch the image as a blob so download works reliably across origins
   fetch(qrImage.src)
     .then(res => {
@@ -327,6 +346,11 @@ function downloadQR() {
     .catch(err => {
       console.error('Failed to download QR image', err);
       alert('Failed to download QR image. Open the QR and save manually as a fallback.');
+    })
+    .finally(() => {
+      // Remove loading state
+      downloadBtn.classList.remove("loading");
+      downloadBtn.disabled = false;
     });
 }
 
