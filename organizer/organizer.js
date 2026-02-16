@@ -238,6 +238,9 @@ async function generateQR() {
     encodeURIComponent(url);
 
   document.getElementById("qrSection").style.display = "block";
+  
+  // Schedule director email for event end time
+  scheduleDirectorEmail();
 }
 
 
@@ -389,7 +392,8 @@ document.addEventListener("DOMContentLoaded", () => {
       updateQRButtonState();
     }
   });
-  scheduleDirectorEmail();
+  
+  // Do NOT call scheduleDirectorEmail here - it will be called after QR is generated
 });
 
 /* Also check for location updates when page regains focus */
@@ -434,13 +438,23 @@ async function downloadCSV() {
 
     // Create blob and download
     const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
+    link.href = url;
     link.download = `attendance_${new Date().toISOString().split('T')[0]}.csv`;
+    link.style.display = "none";
     document.body.appendChild(link);
+    
+    console.log("Download link href:", link.href);
+    console.log("Triggering download...");
+    
     link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(link.href);
+    
+    // Keep link in DOM for a bit longer before removing
+    setTimeout(() => {
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }, 500);
 
     alert("CSV downloaded successfully");
 
