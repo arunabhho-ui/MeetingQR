@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Attendance Not Recorded</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --error: #ff5252;
+      --error-dark: #e53935;
+      --warning: #ff9800;
+      --warning-dark: #f57c00;
+      --light: #f8f9fa;
+      --dark: #212529;
+      --gray: #6c757d;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+      --shadow-hover: 0 15px 35px rgba(0, 0, 0, 0.2);
+      --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      color: var(--dark);
+      line-height: 1.6;
+    }
+
+    .container {
+      background: white;
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      width: 100%;
+      max-width: 600px;
+      text-align: center;
+      padding: 50px 40px;
+      position: relative;
+      overflow: hidden;
+      transform: translateY(0);
+      animation: float 6s ease-in-out infinite;
+      transition: var(--transition);
+    }
+
+    .container:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-hover);
+    }
+
+    /* Decorative elements */
+    .container::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255, 82, 82, 0.08) 0%, rgba(255, 255, 255, 0) 70%);
+      z-index: 0;
+      transform: scale(0.8);
+    }
+
+    .content {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Error icon animation */
+    .error-icon-container {
+      width: 120px;
+      height: 120px;
+      margin: 0 auto 30px;
+      position: relative;
+    }
+
+    .error-circle {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, var(--error), var(--error-dark));
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0 auto;
+      position: relative;
+      transform: scale(0);
+      animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.3s forwards, shake 0.5s 1.2s ease-in-out 3;
+      box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.4);
+      animation: pulseError 2s infinite, popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.3s forwards;
+    }
+
+    @keyframes pulseError {
+      0% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.4); }
+      70% { box-shadow: 0 0 0 15px rgba(244, 67, 54, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0); }
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0); opacity: 0; }
+      70% { transform: scale(1.1); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: rotate(0deg) scale(1); }
+      25% { transform: rotate(-3deg) scale(1.02); }
+      50% { transform: rotate(0deg) scale(1); }
+      75% { transform: rotate(3deg) scale(1.02); }
+    }
+
+    .x-mark {
+      width: 50px;
+      height: 50px;
+      position: relative;
+      transform: rotate(45deg);
+    }
+
+    .x-mark::before,
+    .x-mark::after {
+      content: '';
+      position: absolute;
+      background: white;
+      border-radius: 3px;
+    }
+
+    .x-mark::before {
+      width: 8px;
+      height: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .x-mark::after {
+      width: 100%;
+      height: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    /* Typography */
+    h1 {
+      font-size: 2.8rem;
+      margin-bottom: 20px;
+      color: var(--error-dark);
+      font-weight: 800;
+      position: relative;
+      padding-bottom: 15px;
+    }
+
+    h1::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 4px;
+      background: var(--error);
+      border-radius: 2px;
+    }
+
+    p {
+      font-size: 1.35rem;
+      color: #495057;
+      margin-bottom: 35px;
+      max-width: 520px;
+      margin-left: auto;
+      margin-right: auto;
+      line-height: 1.7;
+      font-weight: 500;
+    }
+
+    .reasons {
+      background: #fff8f8;
+      border-left: 4px solid var(--error);
+      border-radius: 0 12px 12px 0;
+      padding: 20px;
+      margin: 25px 0;
+      text-align: left;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+    }
+
+    .reasons h2 {
+      color: var(--error-dark);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      font-size: 1.4rem;
+    }
+
+    .reasons h2 i {
+      margin-right: 10px;
+      font-size: 1.5rem;
+    }
+
+    .reasons ul {
+      padding-left: 25px;
+      margin-top: 8px;
+      color: #5a5a5a;
+      line-height: 1.8;
+    }
+
+    .reasons li {
+      margin-bottom: 8px;
+      font-size: 1.05rem;
+    }
+
+    .reasons li i {
+      color: var(--warning);
+      margin-right: 8px;
+      width: 20px;
+      text-align: center;
+    }
+
+    /* Button styles */
+    .btn {
+      display: inline-block;
+      background: linear-gradient(to right, var(--error), var(--error-dark));
+      color: white;
+      border: none;
+      padding: 16px 45px;
+      font-size: 1.15rem;
+      font-weight: 600;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(244, 67, 54, 0.4);
+      text-decoration: none;
+      margin-top: 10px;
+      letter-spacing: 0.5px;
+      min-width: 200px;
+    }
+
+    .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 7px 20px rgba(244, 67, 54, 0.55);
+      background: linear-gradient(to right, var(--error-dark), #d32f2f);
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+      box-shadow: 0 3px 10px rgba(244, 67, 54, 0.4);
+    }
+
+    .btn i {
+      margin-right: 8px;
+      font-size: 1.2rem;
+    }
+
+    .btn-secondary {
+      background: white;
+      color: var(--error);
+      border: 2px solid var(--error);
+      margin-top: 20px;
+      box-shadow: none;
+      background: #fff9f9;
+    }
+
+    .btn-secondary:hover {
+      background: #fff0f0;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(244, 67, 54, 0.2);
+      color: var(--error-dark);
+    }
+
+    .btn-row {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    .timestamp {
+      color: var(--gray);
+      font-size: 0.95rem;
+      margin-top: 25px;
+      font-style: italic;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .help-section {
+      background: #f9f9ff;
+      border-radius: 16px;
+      padding: 25px;
+      margin: 30px 0;
+      border: 1px solid #eaeaff;
+      text-align: left;
+    }
+
+    .help-section h3 {
+      color: var(--warning-dark);
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      font-size: 1.4rem;
+    }
+
+    .help-section h3 i {
+      margin-right: 10px;
+      font-size: 1.6rem;
+    }
+
+    .help-section p {
+      margin-bottom: 15px;
+      color: #4a4a6a;
+      font-size: 1.05rem;
+    }
+
+    .contact-info {
+      background: white;
+      border-radius: 12px;
+      padding: 15px;
+      margin-top: 15px;
+      border-left: 3px solid var(--warning);
+      font-weight: 500;
+    }
+
+    .contact-info div {
+      display: flex;
+      align-items: center;
+      margin: 8px 0;
+    }
+
+    .contact-info i {
+      color: var(--warning);
+      font-size: 1.2rem;
+      width: 24px;
+      margin-right: 10px;
+    }
+
+    /* Floating animation */
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-15px); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .content {
+      animation: fadeIn 0.8s ease-out forwards;
+    }
+
+    /* Responsive design */
+    @media (max-width: 650px) {
+      .container {
+        padding: 40px 30px;
+        border-radius: 20px;
+      }
+      
+      h1 {
+        font-size: 2.4rem;
+      }
+      
+      p {
+        font-size: 1.2rem;
+      }
+      
+      .error-icon-container {
+        width: 100px;
+        height: 100px;
+      }
+      
+      .btn {
+        padding: 14px 30px;
+        font-size: 1.05rem;
+        width: 100%;
+        max-width: 300px;
+      }
+      
+      .btn-row {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .reasons, .help-section {
+        padding: 18px;
+      }
+      
+      .reasons ul {
+        padding-left: 20px;
+      }
+    }
+
+    @media (max-width: 400px) {
+      .container {
+        padding: 35px 25px;
+        margin: 10px;
+      }
+      
+      h1 {
+        font-size: 2.1rem;
+      }
+      
+      p {
+        font-size: 1.1rem;
+      }
+      
+      .error-icon-container {
+        width: 90px;
+        height: 90px;
+      }
+      
+      .x-mark {
+        width: 40px;
+        height: 40px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="content">
+      <div class="error-icon-container">
+        <div class="error-circle">
+          <div class="x-mark"></div>
+        </div>
+      </div>
+      
+      <h1>Attendance Not Recorded</h1>
+      <p id="message">
+        We couldn't verify your attendance at this time.<br>
+        This may be due to location restrictions or timing constraints.
+      </p>
+      
+      <div class="reasons">
+        <h2><i class="fas fa-exclamation-triangle"></i> Possible Reasons</h2>
+        <ul>
+          <li><i class="fas fa-map-marker-alt"></i> You're outside the designated attendance area</li>
+          <li><i class="fas fa-clock"></i> The attendance window has closed for this session</li>
+          <li><i class="fas fa-wifi-slash"></i> Unstable internet connection during submission</li>
+          <li><i class="fas fa-user-check"></i> Attendance already recorded for this session</li>
+        </ul>
+      </div>
+      
+      <div class="btn-row">
+        <button class="btn" id="retryBtn">
+          <i class="fas fa-redo"></i> Retry Attendance
+        </button>
+      </div>
+      
+      <div class="timestamp">
+        <i class="fas fa-info-circle"></i> Attempted at: <span id="attemptTime">10:42 AM, February 7, 2026</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Set current attempt time
+      const now = new Date();
+      const options = { 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        hour12: true,
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric'
+      };
+      document.getElementById('attemptTime').textContent = now.toLocaleDateString('en-US', options);
+      
+      // Retry button functionality
+      document.getElementById('retryBtn').addEventListener('click', () => {
+        showNotification('Returning to attendance form...', 'info');
+        setTimeout(() => {
+          // Redirect to attendance form
+          window.location.href = 'index.html';
+        }, 1200);
+      });
+
+      // Display specific reason if provided in query string
+      const params = new URLSearchParams(window.location.search);
+      const reason = params.get('reason');
+      const message = params.get('message');
+      
+      if (message) {
+        const p = document.querySelector('.content p');
+        p.innerHTML = decodeURIComponent(message);
+      } else if (reason) {
+        const p = document.querySelector('.content p');
+        const reasonMessages = {
+          'outside_location': "You appear to be outside the permitted attendance area. Please try again from the event location.",
+          'location_denied': "Location access is required to mark attendance. Please enable location services.",
+          'invalid_location': "Invalid location data received. Please try again.",
+          'time_closed': "The attendance window has closed for this session. You cannot mark attendance now.",
+          'no_geolocation': "This device does not support geolocation. Attendance cannot be verified.",
+          'device_duplicate': "This device has already submitted attendance for this event. One submission per device is allowed.",
+          'server_error': "There was a server error verifying eligibility. Please try again later.",
+          'geolocation_permission': "Location permission denied. Please allow location access in your device settings to mark attendance.",
+          'geolocation_unavailable': "Your device location is unavailable. Please check your device settings and try again.",
+          'geolocation_timeout': "Location request timed out. Please try again with a better network connection.",
+          'geolocation_error': "Failed to retrieve your location. Please ensure location services are enabled.",
+          'config_error': "Event is not properly configured. Please contact the organizer."
+        };
+        
+        p.innerHTML = reasonMessages[reason] || "Attendance could not be recorded. Please try again or contact support.";
+      }
+      
+      // Add subtle hover effect to list items
+      document.querySelectorAll('.reasons li, .help-section p').forEach(item => {
+        item.addEventListener('mouseenter', () => {
+          item.style.transform = 'translateX(5px)';
+          item.style.transition = 'transform 0.3s ease';
+        });
+        
+        item.addEventListener('mouseleave', () => {
+          item.style.transform = 'translateX(0)';
+        });
+      });
+    });
+    
+    // Notification system
+    function showNotification(message, type) {
+      let notification = document.getElementById('notification');
+      
+      if (!notification) {
+        notification = document.createElement('div');
+        notification.id = 'notification';
+        notification.style.cssText = `
+          position: fixed;
+          bottom: 25px;
+          left: 50%;
+          transform: translateX(-50%) translateY(100px);
+          background: white;
+          color: #212529;
+          padding: 16px 30px;
+          border-radius: 14px;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+          z-index: 1000;
+          font-weight: 500;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          transition: transform 0.4s ease, opacity 0.4s ease;
+          max-width: 90%;
+        `;
+        document.body.appendChild(notification);
+      }
+      
+      // Set icon based on type
+      let icon = 'ℹ️';
+      if (type === 'info') icon = '<i class="fas fa-info-circle" style="font-size:1.4rem;color:#1976d2"></i>';
+      
+      notification.innerHTML = `${icon} ${message}`;
+      notification.style.transform = 'translateX(-50%) translateY(0)';
+      notification.style.opacity = '1';
+      
+      // Auto hide after 3 seconds
+      setTimeout(() => {
+        notification.style.transform = 'translateX(-50%) translateY(100px)';
+        notification.style.opacity = '0';
+      }, 3000);
+    }
+    
+    // Gentle floating animation for list items on page load
+    setTimeout(() => {
+      document.querySelectorAll('.reasons li').forEach((item, index) => {
+        item.style.opacity = '0';
+        item.style.transform = 'translateX(-20px)';
+        item.style.transition = 'all 0.6s ease-out';
+        
+        setTimeout(() => {
+          item.style.opacity = '1';
+          item.style.transform = 'translateX(0)';
+        }, 300 + (index * 100));
+      });
+    }, 500);
+  </script>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+
+    document.getElementById("message").innerText =
+      params.get("message") || "Attendance denied";
+  </script>
+
+</body>
+</html>
