@@ -327,21 +327,26 @@ function downloadQR() {
         link.href = url;
         const filename = (CONFIG.event && CONFIG.event.name) ? `${CONFIG.event.name}-QR.png` : 'event-QR.png';
         link.download = filename;
+        link.style.display = "none";
         document.body.appendChild(link);
+        
+        // Trigger download
         link.click();
+        
+        // Cleanup immediately after click
         document.body.removeChild(link);
-        // release memory
-        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        setTimeout(() => URL.revokeObjectURL(url), 100);
+        
         setButtonLoading('downloadQRButton', false);
       })
       .catch(err => {
         console.error('Failed to download QR image', err);
-        alert('Failed to download QR image. Open the QR and save manually as a fallback.');
+        alert('Failed to download QR image: ' + err.message);
         setButtonLoading('downloadQRButton', false);
       });
   } catch (err) {
+    console.error('QR Download error:', err);
     setButtonLoading('downloadQRButton', false);
-    throw err;
   }
 }
 
