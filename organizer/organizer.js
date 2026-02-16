@@ -25,15 +25,28 @@ function initializeDatePicker(){
 
   flatpickr("#eventDate", {
 
-    mode: "single",
+    enableTime: false,
 
     dateFormat: "Y-m-d",
 
-    minDate: "today",
-
-    placeholder: "Select a date"
+    minDate: "today"
 
   });
+
+}
+
+
+/* ============================= */
+/* INITIALIZE TIME PICKER */
+/* ============================= */
+
+function initializeTimePicker(){
+
+  const timeInput = document.getElementById("startTime");
+
+  timeInput.placeholder = "HH:MM (24-hour format)";
+
+  timeInput.addEventListener("change", updateQRButtonState);
 
 }
 
@@ -48,14 +61,11 @@ function loadEventState(){
 
   document.getElementById("eventDate").value = "";
 
-  document.getElementById("startTime").value =
-    getCurrentTime();
+  document.getElementById("startTime").value = "";
 
   document.getElementById("duration").value = "";
 
   localStorage.removeItem("locationConfig");
-
-  initializeDatePicker();
 
 }
 
@@ -81,6 +91,49 @@ function readStoredLocation(){
     return null;
 
   }
+
+}
+
+
+/* ============================= */
+/* SAVE EVENT */
+/* ============================= */
+
+function saveEvent(){
+
+  const eventName = document.getElementById("eventName").value.trim();
+
+  const eventDate = document.getElementById("eventDate").value;
+
+  const startTime = document.getElementById("startTime").value;
+
+  const duration = document.getElementById("duration").value;
+
+  if (!eventName || !eventDate || !startTime || !duration) {
+
+    alert("Please fill in all event details");
+
+    return;
+
+  }
+
+  CONFIG.event = {
+
+    name: eventName,
+
+    date: eventDate,
+
+    startTime: startTime,
+
+    durationMinutes: parseInt(duration)
+
+  };
+
+  localStorage.setItem("eventConfig", JSON.stringify(CONFIG.event));
+
+  alert("✅ Event details saved!");
+
+  updateQRButtonState();
 
 }
 
@@ -315,7 +368,39 @@ document.addEventListener(
 
     loadEventState();
 
+    const startTimeInput = document.getElementById("startTime");
+
+    if (!startTimeInput.value) {
+
+      startTimeInput.value = getCurrentTime();
+
+    }
+
+    document.getElementById("qrSection").style.display = "none";
+
+    initializeDatePicker();
+
+    initializeTimePicker();
+
+    document.getElementById("eventName").addEventListener("input", updateQRButtonState);
+
+    document.getElementById("eventDate").addEventListener("change", updateQRButtonState);
+
+    document.getElementById("startTime").addEventListener("input", updateQRButtonState);
+
+    document.getElementById("duration").addEventListener("input", updateQRButtonState);
+
     updateQRButtonState();
+
+    window.addEventListener("storage", (e) => {
+
+      if (e.key === "locationConfig") {
+
+        updateQRButtonState();
+
+      }
+
+    });
 
   }
 
