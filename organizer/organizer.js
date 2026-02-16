@@ -318,24 +318,21 @@ async function downloadQR() {
     if (!response.ok) throw new Error('Failed to fetch QR image');
     const blob = await response.blob();
     
-    // Convert blob to base64 data URL (NOT revokable)
-    const reader = new FileReader();
-    reader.onload = function() {
-      const base64DataUrl = reader.result;
-      const link = document.createElement('a');
-      link.href = base64DataUrl;
-      const filename = (CONFIG.event && CONFIG.event.name) ? `${CONFIG.event.name}_QR.png` : 'event_QR.png';
-      link.download = filename;
-      link.style.display = "none";
-      document.body.appendChild(link);
-      
-      // Trigger download - opens Save As dialog
-      link.click();
-      
-      // Cleanup
-      document.body.removeChild(link);
-    };
-    reader.readAsDataURL(blob);
+    // Create blob URL (persistent - do NOT revoke)
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    const filename = (CONFIG.event && CONFIG.event.name) ? `${CONFIG.event.name}_QR.png` : 'event_QR.png';
+    link.download = filename;
+    link.style.display = "none";
+    document.body.appendChild(link);
+    
+    // Trigger download - opens Save As dialog
+    link.click();
+    
+    // Cleanup
+    document.body.removeChild(link);
+    // Keep URL object alive - do NOT revoke
   } catch (err) {
     console.error('Failed to download QR image', err);
     alert('Failed to download QR image: ' + err.message);
@@ -462,10 +459,11 @@ async function downloadCSV() {
       filename = `${CONFIG.event.name.replace(/\s+/g, '_')}_Attendance.csv`;
     }
 
-    // Create data URL and trigger download
-    const dataUrl = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
+    // Create blob from CSV and generate URL (persistent - do NOT revoke)
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.href = dataUrl;
+    link.href = url;
     link.download = filename;
     link.style.display = "none";
     document.body.appendChild(link);
@@ -473,8 +471,9 @@ async function downloadCSV() {
     // Trigger download - opens Save As dialog
     link.click();
     
-    // Cleanup immediately
+    // Cleanup
     document.body.removeChild(link);
+    // Keep URL object alive - do NOT revoke
     
     setButtonLoading("downloadCSVButton", false);
   }
