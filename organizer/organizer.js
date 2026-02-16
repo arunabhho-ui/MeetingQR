@@ -113,10 +113,14 @@ function setPresetLocation(name){
 
 async function generateQR(){
 
-  await fetch(CONFIG.mailerScriptURL,{
-    method:"POST",
-    body:new URLSearchParams({action:"clearAttendance"})
-  });
+  try{
+    await fetch(CONFIG.mailerScriptURL,{
+      method:"POST",
+      body:new URLSearchParams({action:"clearAttendance"})
+    });
+  }catch(err){
+    console.error("Error clearing attendance:",err);
+  }
 
   const name =
     document.getElementById("eventName").value.trim();
@@ -132,9 +136,17 @@ async function generateQR(){
 
   const loc = readStoredLocation();
 
-  if(!name || !date || !time || !duration || !loc){
+  if(!name || !date || !time || !duration){
 
-    alert("Complete event + location");
+    alert("Complete event details");
+
+    return;
+
+  }
+
+  if(!loc){
+
+    alert("Please select a location preset");
 
     return;
 
@@ -196,59 +208,75 @@ function downloadQR(){
 
 }
 
-/* ---------- DOWNLOAD CSV (FIXED FOREVER) ---------- */
+/* ---------- DOWNLOAD CSV ---------- */
 
 async function downloadCSV(){
 
-  const { getAllAttendance } =
-    await import("../firebase.js");
+  if(!CONFIG.event || !CONFIG.event.name){
 
-  const records =
-    await getAllAttendance();
-
-  if(!records.length){
-
-    alert("No records");
+    alert("Generate QR first");
 
     return;
 
   }
 
-  let csv =
-    "Timestamp,Event,Name,Email,FacultyID,Department,Latitude,Longitude\n";
+  try{
 
-  records.forEach(r=>{
+    const { getAllAttendance } =
+      await import("../firebase.js");
 
-    csv+=
-      `${r.timestamp||""},`+
-      `${r.eventName||""},`+
-      `${r.name||""},`+
-      `${r.email||""},`+
-      `${r.facultyId||""},`+
-      `${r.department||""},`+
-      `${r.latitude||""},`+
-      `${r.longitude||""}\n`;
+    const records =
+      await getAllAttendance();
 
-  });
+    if(!records.length){
 
-  const filename =
-    CONFIG.event.name.replace(/\s+/g,"_")+"_Attendance.csv";
+      alert("No records");
 
-  const link=document.createElement("a");
+      return;
 
-  link.href=
-    "data:text/csv;charset=utf-8,"+
-    encodeURIComponent(csv);
+    }
 
-  link.download=filename;
+    let csv =
+      "Timestamp,Event,Name,Email,FacultyID,Department,Latitude,Longitude\n";
 
-  document.body.appendChild(link);
+    records.forEach(r=>{
 
-  link.click();
+      csv+=
+        `${r.timestamp||""},`+
+        `${r.eventName||""},`+
+        `${r.name||""},`+
+        `${r.email||""},`+
+        `${r.facultyId||""},`+
+        `${r.department||""},`+
+        `${r.latitude||""},`+
+        `${r.longitude||""}\n`;
 
-  document.body.removeChild(link);
+    });
 
-}
+    const filename =
+      CONFIG.event.name.replace(/\s+/g,"_")+"_Attendance.csv";
+
+    const link=document.createElement("a");
+
+    link.href=
+      "data:text/csv;charset=utf-8,"+
+      encodeURIComponent(csv);
+
+    link.download=filename;
+
+    document.body.appendChild(link);
+
+    link.click();
+
+    document.body.removeChild(link);
+
+  }catch(err){
+
+    console.error("Error downloading CSV:",err);
+
+    alert("Failed to download CSV");
+
+  }
 
 /* ---------- EMAIL ---------- */
 
@@ -257,22 +285,38 @@ async function sendCSVToEmail(){
   const email=
     document.getElementById("directorEmail").value;
 
-  await fetch(CONFIG.mailerScriptURL,{
+  if(!email){
 
-    method:"POST",
+    alert("Enter email address");
 
-    body:new URLSearchParams({
+    return;
 
-      action:"sendAttendanceEmail",
-      email
+  }
 
-    })
+  try{
 
-  });
+    await fetch(CONFIG.mailerScriptURL,{
 
-  alert("Email sent");
+      method:"POST",
 
-}
+      body:new URLSearchParams({
+
+        action:"sendAttendanceEmail",
+        email
+
+      })
+
+    });
+
+    alert("Email sent");
+
+  }catch(err){
+
+    console.error("Error sending email:",err);
+
+    alert("Failed to send email");
+
+  }
 
 /* ---------- EMAIL SCHEDULER ---------- */
 
@@ -298,19 +342,25 @@ function scheduleDirectorEmail(){
 
 async function sendDirectorEmailNow(){
 
-  await fetch(CONFIG.mailerScriptURL,{
+  try{
 
-    method:"POST",
+    await fetch(CONFIG.mailerScriptURL,{
 
-    body:new URLSearchParams({
+      method:"POST",
 
-      action:"sendDirectorEmail"
+      body:new URLSearchParams({
 
-    })
+        action:"sendDirectorEmail"
 
-  });
+      })
 
-}
+    });
+
+  }catch(err){
+
+    console.error("Error sending director email:",err);
+
+  }
 
 /* ---------- INIT ---------- */
 
@@ -332,4 +382,4 @@ window.setPresetLocation=setPresetLocation;
 window.generateQR=generateQR;
 window.downloadQR=downloadQR;
 window.downloadCSV=downloadCSV;
-window.sendCSVToEmail=sendCSVToEmail;
+window.sendCSVToEmail=sendCSVToEmail;}}}
