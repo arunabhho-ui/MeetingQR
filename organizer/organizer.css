@@ -483,6 +483,33 @@ button:disabled:hover::after {
   box-shadow: 0 6px 25px rgba(30, 64, 175, 0.45);
 }
 
+/* Preset Buttons Container */
+.preset-buttons {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+/* Preset Button */
+.preset-btn {
+  background: linear-gradient(120deg, var(--primary), var(--primary-dark));
+  box-shadow: 0 4px 20px rgba(67, 97, 238, 0.35);
+  width: auto;
+  flex: 1;
+  min-width: 80px;
+  padding: 12px 20px;
+  font-size: 1rem;
+  white-space: nowrap;
+}
+
+.preset-btn:hover {
+  background: linear-gradient(120deg, var(--primary-dark), #304cc9);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(67, 97, 238, 0.45);
+}
+
 /* Map Button */
 .map-btn {
   display: inline-flex;
