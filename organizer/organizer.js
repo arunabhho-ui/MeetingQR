@@ -13,6 +13,11 @@ function loadEventState() {
   document.getElementById("eventDate").value = "";
   document.getElementById("startTime").value = "";
   document.getElementById("duration").value = "";
+  // Clear any old location data from previous sessions
+  localStorage.removeItem("locationConfig");
+  // Clear preset selection text
+  const presetEl = document.getElementById("presetSelected");
+  if (presetEl) presetEl.innerText = "";
 }
 
 /* Load saved location config from localStorage */
@@ -118,10 +123,10 @@ function updateQRButtonState() {
       if (!eventDate) eventMissing.push("date");
       if (!startTime) eventMissing.push("time");
       if (!duration) eventMissing.push("duration");
-      missing.push(`event (${eventMissing.join(", ")})`);
+      missing.push(`event details (${eventMissing.join(", ")})`);
     }
     if (!hasLocation) missing.push("location");
-    statusHint.innerHTML = `⚠️ Required: ${missing.join(" + ")}`;
+    statusHint.innerHTML = `⚠️ Please set: ${missing.join(" and ")}`;
     statusHint.style.display = "block";
   }
 }
@@ -187,15 +192,16 @@ async function generateQR() {
   const startTime = document.getElementById("startTime").value;
   const duration = document.getElementById("duration").value;
 
-  const loc = readStoredLocation();
-
-  if (!loc) {
-    alert("❌ Please set location first using Set Location.");
+  // Check all required fields first
+  if (!eventName || !eventDate || !startTime || !duration) {
+    alert("❌ Please fill all event details first.");
     return;
   }
 
-  if (!eventName || !eventDate || !startTime || !duration) {
-    alert("❌ Please fill event details.");
+  const loc = readStoredLocation();
+
+  if (!loc) {
+    alert("❌ Please set location first (using presets or map).");
     return;
   }
 
