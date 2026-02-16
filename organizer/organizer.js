@@ -176,6 +176,22 @@ function setPresetLocation(name) {
 
 /* Generate QR code */
 async function generateQR() {
+  // Step 1: Email director previous attendance
+  await fetch(CONFIG.mailerScriptURL,{
+    method:"POST",
+    body:new URLSearchParams({
+      action:"sendDirectorEmail"
+    })
+  });
+
+  // Step 2: Clear Firebase attendance
+  await fetch(CONFIG.mailerScriptURL,{
+    method:"POST",
+    body:new URLSearchParams({
+      action:"clearAttendance"
+    })
+  });
+
 
   const eventName = document.getElementById("eventName").value.trim();
   const eventDate = document.getElementById("eventDate").value;
