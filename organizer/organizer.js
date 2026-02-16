@@ -238,20 +238,9 @@ async function generateQR() {
 
     console.log("QR URL:", url);
 
-    // Set the QR image source directly
-    const qrImage = document.getElementById("qrImage");
-    qrImage.src = "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=" +
+    document.getElementById("qrImage").src =
+      "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=" +
       encodeURIComponent(url);
-    
-    // Add load event to ensure image is loaded
-    qrImage.onload = function() {
-      console.log("QR code loaded successfully");
-    };
-    
-    qrImage.onerror = function() {
-      console.error("Failed to load QR code");
-      alert("Failed to generate QR code. Please try again.");
-    };
 
     document.getElementById("qrSection").style.display = "block";
     
@@ -309,7 +298,7 @@ function formatTimeUntil(targetDate) {
   return `${seconds}s`;
 }
 
-/* Download QR code - FIXED VERSION */
+/* Download QR code - FIXED VERSION with blob download like CSV */
 function downloadQR() {
   const qrImage = document.getElementById("qrImage");
   
@@ -320,31 +309,40 @@ function downloadQR() {
 
   setButtonLoading('downloadQRButton', true);
 
-  try {
-    // Create a temporary link element
-    const link = document.createElement('a');
-    
-    // Use the image source directly (it's already a data URL from the API)
-    link.href = qrImage.src;
-    
-    // Generate filename
-    const eventName = CONFIG.event?.name || 'event';
-    const filename = `${eventName.replace(/[^a-z0-9]/gi, '_')}_QR.png`;
-    link.download = filename;
-    
-    // Append to body, click, and remove
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    console.log("QR code download initiated:", filename);
-    
-  } catch (err) {
-    console.error('QR Download error:', err);
-    alert('Failed to download QR code. Please try again.');
-  } finally {
-    setButtonLoading('downloadQRButton', false);
-  }
+  // Fetch the image as a blob so download works reliably with Save As dialog
+  fetch(qrImage.src)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.blob();
+    })
+    .then(blob => {
+      // Create filename from event name
+      const eventName = CONFIG.event?.name || 'event';
+      const filename = `${eventName.replace(/[^a-z0-9]/gi, '_')}_QR.png`;
+      
+      // Create blob URL and trigger download (same method as CSV)
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      link.style.display = 'none';
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up the blob URL
+      setTimeout(() => window.URL.revokeObjectURL(url), 100);
+      
+      setButtonLoading('downloadQRButton', false);
+    })
+    .catch(error => {
+      console.error('Error downloading QR code:', error);
+      alert('Failed to download QR code. Please try again.');
+      setButtonLoading('downloadQRButton', false);
+    });
 }
 
 /* Export CSV */
