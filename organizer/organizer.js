@@ -385,27 +385,51 @@ window.addEventListener("focus", () => {
 });
 
 
-function downloadCSV() {
+async function downloadCSV() {
 
-  const sheetId =
-    "1f0WpNpTtZkqeO7XQ780l7mRye_X95IKyd-DmkxGCXQc";
+  try {
 
-  const gid = "0"; // your sheet gid
+    const { getAllAttendance } = await import("../firebase.js");
 
-  const url =
-    `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`;
+    const records = await getAllAttendance();
 
-  const link = document.createElement("a");
+    if (records.length === 0) {
+      alert("No attendance records found");
+      return;
+    }
 
-  link.href = url;
+    // Create CSV header
+    let csv = "Timestamp,Event,Name,Email,FacultyID,Department,Latitude,Longitude\n";
 
-  link.download = "attendance.csv";
+    // Add data rows
+    records.forEach(record => {
+      csv += `${record.timestamp || ""},` +
+             `${record.eventName || ""},` +
+             `${record.name || ""},` +
+             `${record.email || ""},` +
+             `${record.facultyId || ""},` +
+             `${record.department || ""},` +
+             `${record.latitude || ""},` +
+             `${record.longitude || ""}\n`;
+    });
 
-  document.body.appendChild(link);
+    // Create blob and download
+    const blob = new Blob([csv], { type: "text/csv" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `attendance_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
 
-  link.click();
+    alert("CSV downloaded successfully");
 
-  document.body.removeChild(link);
+  }
+  catch (err) {
+    console.error("Download error:", err);
+    alert("Failed to download CSV: " + err.message);
+  }
 
 }
 
