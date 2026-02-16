@@ -1,3 +1,11 @@
+import {
+  collection,
+  getDocs
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+import { db } from "../firebase.js";
+
+
 /* ============================= */
 /* CURRENT TIME */
 /* ============================= */
@@ -6,30 +14,34 @@ function getCurrentTime(){
 
   const now = new Date();
 
-  const hours =
-    String(now.getHours()).padStart(2,'0');
-
-  const minutes =
-    String(now.getMinutes()).padStart(2,'0');
-
-  return `${hours}:${minutes}`;
+  return now.toTimeString().slice(0,5);
 
 }
 
 
 /* ============================= */
-/* INITIALIZE DATE PICKER */
+/* DATE PICKER */
 /* ============================= */
 
 function initializeDatePicker(){
 
+  if(typeof flatpickr === "undefined"){
+
+    console.error("Flatpickr not loaded");
+
+    return;
+
+  }
+
   flatpickr("#eventDate", {
 
-    enableTime: false,
+    enableTime:false,
 
-    dateFormat: "Y-m-d",
+    dateFormat:"Y-m-d",
 
-    minDate: "today"
+    minDate:"today",
+
+    defaultDate:"today"
 
   });
 
@@ -37,16 +49,14 @@ function initializeDatePicker(){
 
 
 /* ============================= */
-/* INITIALIZE TIME PICKER */
+/* TIME PICKER */
 /* ============================= */
 
 function initializeTimePicker(){
 
-  const timeInput = document.getElementById("startTime");
+  const input = document.getElementById("startTime");
 
-  timeInput.placeholder = "HH:MM (24-hour format)";
-
-  timeInput.addEventListener("change", updateQRButtonState);
+  input.type = "time";
 
 }
 
@@ -57,13 +67,13 @@ function initializeTimePicker(){
 
 function loadEventState(){
 
-  document.getElementById("eventName").value = "";
+  document.getElementById("eventName").value="";
 
-  document.getElementById("eventDate").value = "";
+  document.getElementById("eventDate").value="";
 
-  document.getElementById("startTime").value = "";
+  document.getElementById("startTime").value="";
 
-  document.getElementById("duration").value = "";
+  document.getElementById("duration").value="";
 
   localStorage.removeItem("locationConfig");
 
@@ -76,8 +86,7 @@ function loadEventState(){
 
 function readStoredLocation(){
 
-  const saved =
-    localStorage.getItem("locationConfig");
+  const saved = localStorage.getItem("locationConfig");
 
   if(!saved) return null;
 
@@ -96,53 +105,10 @@ function readStoredLocation(){
 
 
 /* ============================= */
-/* SAVE EVENT */
+/* PRESET LOCATION */
 /* ============================= */
 
-function saveEvent(){
-
-  const eventName = document.getElementById("eventName").value.trim();
-
-  const eventDate = document.getElementById("eventDate").value;
-
-  const startTime = document.getElementById("startTime").value;
-
-  const duration = document.getElementById("duration").value;
-
-  if (!eventName || !eventDate || !startTime || !duration) {
-
-    alert("Please fill in all event details");
-
-    return;
-
-  }
-
-  CONFIG.event = {
-
-    name: eventName,
-
-    date: eventDate,
-
-    startTime: startTime,
-
-    durationMinutes: parseInt(duration)
-
-  };
-
-  localStorage.setItem("eventConfig", JSON.stringify(CONFIG.event));
-
-  alert("✅ Event details saved!");
-
-  updateQRButtonState();
-
-}
-
-
-/* ============================= */
-/* PRESET LOCATIONS */
-/* ============================= */
-
-function setPresetLocation(name){
+window.setPresetLocation = function(name){
 
   const presets = {
 
@@ -173,7 +139,7 @@ function setPresetLocation(name){
 
   updateQRButtonState();
 
-}
+};
 
 
 /* ============================= */
@@ -182,31 +148,15 @@ function setPresetLocation(name){
 
 function updateQRButtonState(){
 
-  const eventName =
-    document.getElementById("eventName").value;
+  const ready =
 
-  const eventDate =
-    document.getElementById("eventDate").value;
-
-  const startTime =
-    document.getElementById("startTime").value;
-
-  const duration =
-    document.getElementById("duration").value;
-
-  const loc =
+    document.getElementById("eventName").value &&
+    document.getElementById("eventDate").value &&
+    document.getElementById("startTime").value &&
+    document.getElementById("duration").value &&
     readStoredLocation();
 
-  const ready =
-    eventName &&
-    eventDate &&
-    startTime &&
-    duration &&
-    loc;
-
-  document.getElementById(
-    "generateQR"
-  ).disabled = !ready;
+  document.getElementById("generateQR").disabled = !ready;
 
 }
 
@@ -215,7 +165,7 @@ function updateQRButtonState(){
 /* GENERATE QR */
 /* ============================= */
 
-function generateQR(){
+window.generateQR = function(){
 
   const eventName =
     document.getElementById("eventName").value;
@@ -232,13 +182,7 @@ function generateQR(){
   const loc =
     readStoredLocation();
 
-  if(
-    !eventName ||
-    !eventDate ||
-    !startTime ||
-    !duration ||
-    !loc
-  ){
+  if(!eventName || !eventDate || !startTime || !duration || !loc){
 
     alert("Fill event and location");
 
@@ -246,48 +190,38 @@ function generateQR(){
 
   }
 
-
-  CONFIG.event = {
-
-    name:eventName,
-    date:eventDate,
-    startTime:startTime,
-    durationMinutes:
-      parseInt(duration)
-
-  };
-
-
   const url =
 
-    `${window.location.origin}` +
-    `/MeetingQR/attendee/index.html` +
+    `${window.location.origin}/MeetingQR/attendee/index.html` +
 
     `?event=${encodeURIComponent(eventName)}` +
+
     `&lat=${loc.latitude}` +
+
     `&lng=${loc.longitude}` +
+
     `&radius=${loc.radius}`;
 
 
   document.getElementById("qrImage").src =
 
-    "https://api.qrserver.com/v1/create-qr-code/" +
-    "?size=300x300&data=" +
-    encodeURIComponent(url);
+    "https://api.qrserver.com/v1/create-qr-code/"
+
+    + "?size=300x300&data="
+
+    + encodeURIComponent(url);
 
 
-  document.getElementById(
-    "qrSection"
-  ).style.display = "block";
+  document.getElementById("qrSection").style.display="block";
 
-}
+};
 
 
 /* ============================= */
 /* DOWNLOAD QR */
 /* ============================= */
 
-function downloadQR(){
+window.downloadQR = function(){
 
   const img =
     document.getElementById("qrImage");
@@ -297,29 +231,24 @@ function downloadQR(){
 
   link.href = img.src;
 
-  link.download =
-
-    CONFIG.event.name + "-QR.png";
+  link.download = "eventQR.png";
 
   link.click();
 
-}
+};
 
 
 /* ============================= */
-/* DOWNLOAD CSV FROM FIREBASE */
+/* DOWNLOAD CSV */
 /* ============================= */
 
-async function downloadCSV(){
+window.downloadCSV = async function(){
 
   const snapshot =
-    await getDocs(
-      collection(db,"attendance")
-    );
+    await getDocs(collection(db,"attendance"));
 
   let csv =
     "Timestamp,Event,Name,Email,FacultyID,Department,Latitude,Longitude\n";
-
 
   snapshot.forEach(doc=>{
 
@@ -327,17 +256,16 @@ async function downloadCSV(){
 
     csv +=
 
-      `${d.timestamp},` +
-      `${d.eventName},` +
-      `${d.name},` +
-      `${d.email},` +
-      `${d.facultyId},` +
-      `${d.department},` +
-      `${d.latitude},` +
+      `${d.timestamp},`+
+      `${d.eventName},`+
+      `${d.name},`+
+      `${d.email},`+
+      `${d.facultyId},`+
+      `${d.department},`+
+      `${d.latitude},`+
       `${d.longitude}\n`;
 
   });
-
 
   const blob =
     new Blob([csv]);
@@ -353,7 +281,7 @@ async function downloadCSV(){
 
   link.click();
 
-}
+};
 
 
 /* ============================= */
@@ -368,39 +296,28 @@ document.addEventListener(
 
     loadEventState();
 
-    const startTimeInput = document.getElementById("startTime");
+    document.getElementById("startTime").value =
+      getCurrentTime();
 
-    if (!startTimeInput.value) {
-
-      startTimeInput.value = getCurrentTime();
-
-    }
-
-    document.getElementById("qrSection").style.display = "none";
+    document.getElementById("qrSection").style.display="none";
 
     initializeDatePicker();
 
     initializeTimePicker();
 
-    document.getElementById("eventName").addEventListener("input", updateQRButtonState);
+    document.getElementById("eventName")
+      .addEventListener("input",updateQRButtonState);
 
-    document.getElementById("eventDate").addEventListener("change", updateQRButtonState);
+    document.getElementById("eventDate")
+      .addEventListener("change",updateQRButtonState);
 
-    document.getElementById("startTime").addEventListener("input", updateQRButtonState);
+    document.getElementById("startTime")
+      .addEventListener("input",updateQRButtonState);
 
-    document.getElementById("duration").addEventListener("input", updateQRButtonState);
+    document.getElementById("duration")
+      .addEventListener("input",updateQRButtonState);
 
     updateQRButtonState();
-
-    window.addEventListener("storage", (e) => {
-
-      if (e.key === "locationConfig") {
-
-        updateQRButtonState();
-
-      }
-
-    });
 
   }
 
