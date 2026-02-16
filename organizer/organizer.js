@@ -305,26 +305,38 @@ function formatTimeUntil(targetDate) {
 }
 
 /* Download QR code */
-function downloadQR() {
-  const qrImage = document.getElementById("qrImage");
-  if (!qrImage.src) {
-    alert("Generate QR code first");
-    return;
-  }
+async function downloadQR() {
+  try {
+    const qrImage = document.getElementById("qrImage");
+    if (!qrImage.src) {
+      alert("Generate QR code first");
+      return;
+    }
 
-  // Direct download using the QR image source
-  const link = document.createElement('a');
-  link.href = qrImage.src;
-  const filename = (CONFIG.event && CONFIG.event.name) ? `${CONFIG.event.name}_QR.png` : 'event_QR.png';
-  link.download = filename;
-  link.style.display = "none";
-  document.body.appendChild(link);
-  
-  // Trigger download - opens Save As dialog
-  link.click();
-  
-  // Cleanup immediately
-  document.body.removeChild(link);
+    // Fetch the QR image as a blob
+    const response = await fetch(qrImage.src);
+    if (!response.ok) throw new Error('Failed to fetch QR image');
+    const blob = await response.blob();
+    
+    // Create blob URL and download
+    const blobUrl = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    const filename = (CONFIG.event && CONFIG.event.name) ? `${CONFIG.event.name}_QR.png` : 'event_QR.png';
+    link.download = filename;
+    link.style.display = "none";
+    document.body.appendChild(link);
+    
+    // Trigger download - opens Save As dialog
+    link.click();
+    
+    // Cleanup
+    document.body.removeChild(link);
+    URL.revokeObjectURL(blobUrl);
+  } catch (err) {
+    console.error('Failed to download QR image', err);
+    alert('Failed to download QR image: ' + err.message);
+  }
 }
 
 /* Export CSV */
