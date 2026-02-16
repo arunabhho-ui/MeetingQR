@@ -150,6 +150,35 @@ async function initializeAttendance(){
       return;
     }
 
+    // Time window check
+    try{
+      if(CONFIG.event && CONFIG.event.date && CONFIG.event.startTime){
+        const start = new Date(`${CONFIG.event.date}T${CONFIG.event.startTime}`);
+        const end = new Date(start.getTime() + (CONFIG.event.durationMinutes||0) * 60000);
+        const now = new Date();
+        if(now < start || now > end){
+          redirectToDenied("time_closed");
+          return;
+        }
+      }
+    }
+    catch(e){
+      console.warn('Time check failed', e);
+    }
+
+    // Duplicate device check via Firebase
+    try{
+      const { getAllAttendance } = await import("../firebase.js");
+      const records = await getAllAttendance();
+      const prev = records.find(r => r.deviceId === deviceId && r.eventName === CONFIG.event.name);
+      if(prev){
+        redirectToDenied("device_duplicate");
+        return;
+      }
+    }
+    catch(e){
+      console.warn('Duplicate check failed, proceeding:', e);
+    }
 
     form.style.display="block";
     statusText.style.display="none";
