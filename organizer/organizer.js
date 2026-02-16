@@ -178,8 +178,39 @@ function setPresetLocation(name) {
 
 /* Generate QR code */
 async function generateQR() {
-  // previous behavior: emailing/clearing attendance at QR generation removed
-  // director email will be scheduled for event end via scheduleDirectorEmail()
+  // If there are leftover attendance records from a previous event,
+  // offer to email them before clearing so organizers don't lose data.
+  try{
+    const { getAllAttendance } = await import("../firebase.js");
+    const existing = await getAllAttendance();
+    if(existing && existing.length > 0){
+      const msg = `There are ${existing.length} attendance records from a previous event.\n` +
+        "Click OK to email them to the director and then clear, or Cancel to just clear now.";
+      const emailFirst = confirm(msg);
+
+      if(emailFirst){
+        try{
+          await fetch(CONFIG.mailerScriptURL,{ method: "POST", body: new URLSearchParams({ action: "sendDirectorEmail" }) });
+          // small delay to let Apps Script process (best-effort)
+          await new Promise(r=>setTimeout(r,500));
+        }
+        catch(e){
+          console.warn('Failed to email previous attendance:', e);
+        }
+      }
+
+      // Clear attendance regardless (either after email or directly)
+      try{
+        await fetch(CONFIG.mailerScriptURL,{ method: "POST", body: new URLSearchParams({ action: "clearAttendance" }) });
+      }
+      catch(e){
+        console.warn('Failed to clear previous attendance:', e);
+      }
+    }
+  }
+  catch(e){
+    console.warn('Could not check/clear previous attendance automatically:', e);
+  }
 
   const eventName = document.getElementById("eventName").value.trim();
   const eventDate = document.getElementById("eventDate").value;
