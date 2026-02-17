@@ -95,6 +95,12 @@
             <p class="qr-caption">Scan this code for event check-in</p>
             <div class="qr-hint">Valid for: <span id="eventTitle">Your Event</span></div>
             <p id="qrTimer" style="margin-top: 10px; font-weight: 600; color: #d9534f;"></p>
+            <div id="emailStatus" style="display:none; margin-top:12px; font-weight:600; color:#1e293b; align-items:center; gap:8px;">
+              <span id="emailSpinner" style="display:none;">
+                <span class="spinner" style="border-top-color:#4361ee; border-color: rgba(67,97,238,0.15);"></span>
+              </span>
+              <span id="emailMessage"> </span>
+            </div>
           </div>
           <button id="downloadQRButton" class="primary-btn" onclick="downloadQR()">
             <i class="fas fa-download"></i> Download QR Code (PNG)
