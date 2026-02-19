@@ -147,8 +147,8 @@ function openLocationPage() { window.open("map.html", "_blank", "width=1200,heig
 /* Preset locations */
 function setPresetLocation(name) {
   const presets = {
-    AB5: { latitude: 13.12521377401022, longitude: 77.58983194828035, radius: 50 },
-    AB4: { latitude: 13.125328708114353, longitude: 77.59047567844392, radius: 50 }
+    AB5: { latitude: 13.125128055616079, longitude: 77.58987820483807, radius: 50 },
+    AB4: { latitude: 13.12528478397818, longitude: 77.59058362580247, radius: 50 }
   };
   const p = presets[name];
   if (!p) return;
