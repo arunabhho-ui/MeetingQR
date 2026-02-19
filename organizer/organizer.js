@@ -166,7 +166,18 @@ async function generateQR() {
   setButtonLoading('generateQR', true);
   try {
     try{
-      await fetch(CONFIG.mailerScriptURL,{ method: "POST", body: new URLSearchParams({ action: "clearAttendance" }) });
+      await fetch(CONFIG.mailerScriptURL,{
+        method:"POST",
+
+        headers:{
+          "Content-Type":
+            "application/x-www-form-urlencoded"
+        },
+
+        body:"action=clearAttendance"
+
+      });
+
     } catch(e){ console.warn('Failed to clear previous attendance:', e); }
 
     const eventName = document.getElementById("eventName").value.trim();
@@ -248,18 +259,63 @@ async function downloadQR() {
 
 /* Email CSV (manual) */
 async function sendCSVToEmail(){
+
   setButtonLoading('emailCSVButton', true);
+
   try{
-    const email = document.getElementById("directorEmail").value.trim();
-    if(!email){ alert("Enter email first"); setButtonLoading('emailCSVButton', false); return; }
-    const res = await fetch(CONFIG.mailerScriptURL,{ method:"POST", body:new URLSearchParams({ action:"sendAttendanceEmail", email:email }) });
-    const data = await res.json();
-    if(data.success) alert("Attendance emailed to " + email);
-    else alert("Failed: "+data.error);
+
+    const email =
+      document.getElementById("directorEmail").value.trim();
+
+    if(!email){
+      alert("Enter email first");
+      return;
+    }
+
+    const response =
+      await fetch(CONFIG.mailerScriptURL,{
+
+        method:"POST",
+
+        headers:{
+          "Content-Type":
+            "application/x-www-form-urlencoded"
+        },
+
+        body:
+          `action=sendAttendanceEmail&email=${encodeURIComponent(email)}`
+
+      });
+
+    const data =
+      await response.json();
+
+    if(data.success){
+
+      alert("Email sent successfully");
+
+    }
+    else{
+
+      alert("Failed: " + data.error);
+
+    }
+
   }
-  catch(err){ console.error(err); alert("Email failed"); }
-  finally{ setButtonLoading('emailCSVButton', false); }
+  catch(err){
+
+    console.error(err);
+    alert("Email failed: " + err.message);
+
+  }
+  finally{
+
+    setButtonLoading('emailCSVButton', false);
+
+  }
+
 }
+
 
 /* START: UI lifecycle */
 document.addEventListener("DOMContentLoaded", () => {
@@ -308,13 +364,43 @@ function scheduleDirectorEmail(){
 
 /* Performs the POST and returns a status object */
 async function sendDirectorEmailNow(){
+
   try{
-    const res = await fetch(CONFIG.mailerScriptURL, { method: "POST", body: new URLSearchParams({ action: "sendDirectorEmail" }) });
-    let body = null; try { body = await res.json(); } catch(e) { }
-    if (res.ok) return { success: true, data: body };
-    return { success: false, error: (body && body.error) ? body.error : 'Request failed' };
-  } catch(err){ return { success: false, error: err.message }; }
+
+    const response =
+      await fetch(CONFIG.mailerScriptURL,{
+
+        method:"POST",
+
+        headers:{
+          "Content-Type":
+            "application/x-www-form-urlencoded"
+        },
+
+        body:
+          "action=sendDirectorEmail"
+
+      });
+
+    const data =
+      await response.json();
+
+    return data;
+
+  }
+  catch(err){
+
+    console.error(err);
+
+    return {
+      success:false,
+      error:err.message
+    };
+
+  }
+
 }
+
 
 /* UI helpers for email sending status shown under the QR */
 function showEmailStatus(message, showSpinner = true){
