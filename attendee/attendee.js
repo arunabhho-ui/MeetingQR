@@ -270,27 +270,47 @@ form.addEventListener("submit", async e => {
       navigator.geolocation.getCurrentPosition(resolve,reject)
     );
 
-    const attendanceData = {
+    const payload = new URLSearchParams();
 
-      eventName: CONFIG.event.name,
-      name: name,
-      email: email,
-      facultyId: facultyId,
-      department: department === "other" ? otherDepartment : department,
+    payload.append("action", "submitAttendance");
+    payload.append("eventName", CONFIG.event.name);
+    payload.append("name", name);
+    payload.append("email", email);
+    payload.append("facultyId", facultyId);
+    payload.append(
+      "department",
+      department === "other" ? otherDepartment : department
+    );
 
-      latitude: pos.coords.latitude,
-      longitude: pos.coords.longitude,
+    payload.append("deviceId", deviceId);
 
-      deviceId: deviceId
+    payload.append("latitude", pos.coords.latitude);
+    payload.append("longitude", pos.coords.longitude);
 
-    };
+    const response = await fetch(CONFIG.mailerScriptURL, {
 
+      method: "POST",
 
-    const { saveAttendanceFirebase } = await import("../firebase.js");
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
 
-    await saveAttendanceFirebase(attendanceData);
+      body: payload.toString()
 
-    window.location.href = "success.html";
+    });
+
+    const result = await response.json();
+
+    if(result.success){
+
+      window.location.href = "success.html";
+
+    }
+    else{
+
+      redirectToDenied(result.reason || "server_error");
+
+    }
 
   }
   catch(err){
