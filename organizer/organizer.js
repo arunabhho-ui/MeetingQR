@@ -252,7 +252,8 @@ async function sendCSVToEmail(){
   try{
     const email = document.getElementById("directorEmail").value.trim();
     if(!email){ alert("Enter email first"); setButtonLoading('emailCSVButton', false); return; }
-    const res = await fetch(CONFIG.mailerScriptURL,{ method:"POST", body:new URLSearchParams({ action:"sendAttendanceEmail", email:email }) });
+    // Request filtered CSV (latitude/longitude removed)
+    const res = await fetch(CONFIG.mailerScriptURL,{ method:"POST", body:new URLSearchParams({ action:"sendFilteredAttendanceEmail", email:email }) });
     const data = await res.json();
     if(data.success) alert("Attendance emailed to " + email);
     else alert("Failed: "+data.error);
@@ -285,8 +286,9 @@ async function downloadCSV() {
     const { getAllAttendance } = await import("../firebase.js");
     const records = await getAllAttendance();
     if (!records || records.length === 0) { alert("No attendance records found"); setButtonLoading("downloadCSVButton", false); return; }
-    let csv = "Timestamp,Event,Name,Email,FacultyID,Department,Latitude,Longitude\n";
-    records.forEach(record => { csv += `${record.timestamp || ""},${record.eventName || ""},${record.name || ""},${record.email || ""},${record.facultyId || ""},${record.department || ""},${record.latitude || ""},${record.longitude || ""}\n`; });
+    // Build CSV without latitude/longitude
+    let csv = "Timestamp,Event,Name,Email,FacultyID,Department\n";
+    records.forEach(record => { csv += `${record.timestamp || ""},${record.eventName || ""},${record.name || ""},${record.email || ""},${record.facultyId || ""},${record.department || ""}\n`; });
     let filename = "Attendance_Report.csv"; if(CONFIG.event?.name) filename = `${CONFIG.event.name.replace(/\s+/g, '_')}_Attendance.csv`;
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = filename; link.style.display = "none"; document.body.appendChild(link); link.click(); document.body.removeChild(link);
@@ -309,7 +311,10 @@ function scheduleDirectorEmail(){
 /* Performs the POST and returns a status object */
 async function sendDirectorEmailNow(){
   try{
-    const res = await fetch(CONFIG.mailerScriptURL, { method: "POST", body: new URLSearchParams({ action: "sendDirectorEmail" }) });
+    // Send filtered CSV to director (omit lat/lon). Use directorEmail input if set, otherwise fallback.
+    const directorEmailInput = document.getElementById('directorEmail');
+    const directorEmail = (directorEmailInput && directorEmailInput.value && directorEmailInput.value.trim()) ? directorEmailInput.value.trim() : 'arunabhho.das@gmail.com';
+    const res = await fetch(CONFIG.mailerScriptURL, { method: "POST", body: new URLSearchParams({ action: "sendFilteredAttendanceEmail", email: directorEmail }) });
     let body = null; try { body = await res.json(); } catch(e) { }
     if (res.ok) return { success: true, data: body };
     return { success: false, error: (body && body.error) ? body.error : 'Request failed' };
@@ -347,4 +352,3 @@ window.generateQR = generateQR;
 window.downloadQR = downloadQR;
 window.downloadCSV = downloadCSV;
 window.sendCSVToEmail = sendCSVToEmail;
-
