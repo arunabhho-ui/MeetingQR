@@ -167,6 +167,7 @@ async function generateQR() {
   try {
     try{
       await fetch(CONFIG.mailerScriptURL,{
+
         method:"POST",
 
         headers:{
@@ -341,8 +342,9 @@ async function downloadCSV() {
     const { getAllAttendance } = await import("../firebase.js");
     const records = await getAllAttendance();
     if (!records || records.length === 0) { alert("No attendance records found"); setButtonLoading("downloadCSVButton", false); return; }
-    let csv = "Timestamp,Event,Name,Email,FacultyID,Department,Latitude,Longitude\n";
-    records.forEach(record => { csv += `${record.timestamp || ""},${record.eventName || ""},${record.name || ""},${record.email || ""},${record.facultyId || ""},${record.department || ""},${record.latitude || ""},${record.longitude || ""}\n`; });
+    let csv ="Timestamp,Event,Name,Email,FacultyID,Department\n";
+
+    records.forEach(record => { csv +=`${record.timestamp || ""},` +`${record.eventName || ""},` +`${record.name || ""},` +`${record.email || ""},` +`${record.facultyId || ""},` +`${record.department || ""}\n`; });
     let filename = "Attendance_Report.csv"; if(CONFIG.event?.name) filename = `${CONFIG.event.name.replace(/\s+/g, '_')}_Attendance.csv`;
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = filename; link.style.display = "none"; document.body.appendChild(link); link.click(); document.body.removeChild(link);
