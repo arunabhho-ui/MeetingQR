@@ -44,21 +44,30 @@ function loadConfigFromURL(){
   const lng = params.get("lng");
   const radius = params.get("radius");
   const event = params.get("event");
+  const date = params.get("date");
+  const startTime = params.get("startTime");
+  const duration = params.get("duration");
 
   if(lat && lng && radius){
-
     CONFIG.location = {
       latitude: parseFloat(lat),
       longitude: parseFloat(lng),
       radius: parseFloat(radius)
     };
-
   }
 
-  if(event){
+  if(!CONFIG.event){
+    CONFIG.event = {};
+  }
 
-    CONFIG.event.name = event;
+  if(event) CONFIG.event.name = event;
+  if(date) CONFIG.event.date = date;
+  if(startTime) CONFIG.event.startTime = startTime;
+  if(duration) CONFIG.event.durationMinutes = parseInt(duration);
 
+  // NOW validate config
+  if(!CONFIG.event.name || !CONFIG.location.latitude){
+    redirectToDenied("config_error");
   }
 
 }
@@ -278,11 +287,22 @@ form.addEventListener("submit", async e => {
     payload.append("longitude", pos.coords.longitude);
 
     // Calculate start and end times
-    const startDateTime = new Date(`${CONFIG.event.date}T${CONFIG.event.startTime}`);
+    if(!CONFIG.event?.date || !CONFIG.event?.startTime){
+      statusText.innerText = "Event configuration error";
+      setButtonLoading(submitButton, false);
+      return;
+    }
+
+    const startDateTime = new Date(CONFIG.event.date + "T" + CONFIG.event.startTime);
     const endDateTime = new Date(startDateTime.getTime() + (CONFIG.event.durationMinutes || 0) * 60000);
 
-    payload.append("startTime", startDateTime.toISOString());
+    if(isNaN(startDateTime.getTime()) || isNaN(endDateTime.getTime())){
+      statusText.innerText = "Invalid event time";
+      setButtonLoading(submitButton, false);
+      return;
+    }
 
+    payload.append("startTime", startDateTime.toISOString());
     payload.append("endTime", endDateTime.toISOString());
 
     payload.append("eventLat", CONFIG.location.latitude);
@@ -290,6 +310,8 @@ form.addEventListener("submit", async e => {
     payload.append("eventLng", CONFIG.location.longitude);
 
     payload.append("radius", CONFIG.location.radius);
+
+    console.log("Submitting payload:", payload.toString());
 
     const response = await fetch(CONFIG.mailerScriptURL, {
 
