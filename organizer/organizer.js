@@ -212,8 +212,8 @@ function initializeTimePicker() {
 function openLocationPage() { window.open("map.html","_blank","width=1200,height=800"); }
 function setPresetLocation(name) {
   const presets = {
-    AB5: { latitude:13.125128055616079, longitude:77.58987820483807, radius:50 },
-    AB4: { latitude:13.12528478397818,  longitude:77.59058362580247, radius:50 },
+    AB5: { latitude:13.125128055616079, longitude:77.58987820483807, radius:100 },
+    AB4: { latitude:13.12504185498949, longitude:77.59055680371402, radius:100 },
   };
   const p = presets[name]; if (!p) return;
   try {
