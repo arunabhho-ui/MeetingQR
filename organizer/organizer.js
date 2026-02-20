@@ -228,7 +228,14 @@ async function generateQR() {
 
     // Calculate base path dynamically to remove hardcoded /MeetingQR/
     const basePath = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/organizer/'));
-    const url = `${window.location.origin}${basePath}/attendee/index.html?event=${encodeURIComponent(eventName)}&lat=${loc.latitude}&lng=${loc.longitude}&radius=${loc.radius}`;
+    const url = `${window.location.origin}${basePath}/attendee/index.html`
+    + `?event=${encodeURIComponent(eventName)}`
+    + `&lat=${loc.latitude}`
+    + `&lng=${loc.longitude}`
+    + `&radius=${loc.radius}`
+    + `&date=${CONFIG.event.date}`
+    + `&startTime=${CONFIG.event.startTime}`
+    + `&duration=${CONFIG.event.durationMinutes}`;
     document.getElementById("qrImage").src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(url)}`;
     document.getElementById("qrSection").style.display = "block";
     const titleEl = document.getElementById("eventTitle");
@@ -358,7 +365,7 @@ async function downloadXLSX() {
     ]);
     
     // All departments including those with 0 attendees
-    const allDepartments = ["MIT", "DLHS", "TAPMI", "SMI", "MLS", "DOC"];
+    const allDepartments = ["ECE", "SOC", "Science and Humanities"];
     allDepartments.forEach((dept, i) => {
       const deptRecords = presentRecords.filter(r=>r.department===dept);
       const count = deptRecords.length;
@@ -697,7 +704,7 @@ function generateWorkbook(presentRecords){
   ]);
 
   const allDepartments =
-    ["MIT","DLHS","TAPMI","SMI","MLS","DOC"];
+    ["ECE","SOC","Science and Humanities"];
 
   allDepartments.forEach((dept,i)=>{
 
