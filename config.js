@@ -14,9 +14,10 @@ const CONFIG = {
   },
 
   mailerScriptURL:
-    "https://script.google.com/macros/s/AKfycbxwZKJJ9uJ3ftlr6pJC3jIYK-bFE7WibJ3X8NTy9WiT-Wh3WVJRfwd6N1P4q2Vg6CLpKA/exec"
+    "https://script.google.com/macros/s/AKfycbzko4CQ1c5krVQLxxwd5YrbgreNTuERragl0nKl7iEQuBAh8V2s3IWRSxndmN0iNZ6UCg/exec"
 
 };
 
 export { CONFIG };
+
 
